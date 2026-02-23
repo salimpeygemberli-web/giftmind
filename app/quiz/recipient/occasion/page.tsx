@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { normalizeLang, tSection } from "../../lib/i18n";
-import { readQuiz, writeQuiz } from "../../lib/quizStore";
+import { normalizeLang, tSection } from "../../../lib/i18n";
+import { readQuiz, writeQuiz } from "../../../lib/quizStore";
 
 type Occasion =
   | "birthday"
@@ -49,7 +49,7 @@ export default function Page() {
   return (
     <div style={{ padding: 24 }}>
       <h1 style={{ marginBottom: 6 }}>
-        {t?.("title") || (lang === "ar" ? "ما المناسبة؟" : "What’s the occasion?")}
+      {t?.title || (lang === "ar" ? "ما المناسبة؟" : "What's the occasion?")}
       </h1>
 
       <p style={{ marginTop: 0, color: "#555", marginBottom: 16 }}>

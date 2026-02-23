@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readQuiz, writeQuiz, type Occasion } from "../../lib/quizStore";
-
+import { readQuiz, writeQuiz } from "../../lib/quizStore";
+type Occasion = string;
 type Lang = "en" | "ar";
 
 const TEXT: Record<Lang, any> = {
