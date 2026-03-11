@@ -951,7 +951,7 @@ function buildResults(params: {
             website: p.website,
             score,
             signal: providerSignal(lang, p),
-            description: p.description[lang],
+         description: p.description[lang] ?? "",
           };
         })
         .sort((a, b) => b.score - a.score)
