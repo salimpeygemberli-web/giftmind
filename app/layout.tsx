@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "GiftMind",
   description: "GiftMind Decision Engine",
   manifest: "/manifest.json",
-  themeColor: "#071827",
+themeColor: '#071827',
+
   icons: {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
