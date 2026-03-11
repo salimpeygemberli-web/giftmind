@@ -1,0 +1,72 @@
+export const jordanMerchants = [
+  {
+    id: "hanadi",
+    name: "Hanadi Chocolate",
+    category: "chocolate",
+    city: "Amman",
+    price: "high",
+  },
+  {
+    id: "patchi",
+    name: "Patchi Jordan",
+    category: "chocolate",
+    city: "Amman",
+    price: "high",
+  },
+  {
+    id: "flowersjo",
+    name: "Flowers Jo",
+    category: "flowers",
+    city: "Amman",
+    price: "medium",
+  },
+  {
+    id: "books",
+    name: "Books@Cafe",
+    category: "dining",
+    city: "Amman",
+    price: "medium",
+  },
+  {
+    id: "fakhreldin",
+    name: "Fakhreldin Restaurant",
+    category: "dining",
+    city: "Amman",
+    price: "high",
+  },
+  {
+    id: "kempinski",
+    name: "Kempinski Ishtar Spa",
+    category: "spa",
+    city: "Dead Sea",
+    price: "high",
+  },
+  {
+    id: "fairmont",
+    name: "Fairmont Amman Spa",
+    category: "spa",
+    city: "Amman",
+    price: "high",
+  },
+  {
+    id: "abushakra",
+    name: "Abu Shakra",
+    category: "beauty",
+    city: "Amman",
+    price: "medium",
+  },
+  {
+    id: "giftcorner",
+    name: "Gift Corner",
+    category: "gifts",
+    city: "Amman",
+    price: "medium",
+  },
+  {
+    id: "porche",
+    name: "Porche Toys",
+    category: "kids",
+    city: "Amman",
+    price: "medium",
+  }
+];
