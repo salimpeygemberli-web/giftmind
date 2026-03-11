@@ -1330,7 +1330,7 @@ export default function GiftMindPage() {
 
                             {index === 0 && (
                               <div className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-xs font-bold text-[#0c1b2c]">
-                                {t.bestMatch}
+                            Best Match
                               </div>
                             )}
                           </div>
