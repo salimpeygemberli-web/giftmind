@@ -1277,256 +1277,172 @@ export default function GiftMindPage() {
                   selected={style}
                   onSelect={(value) => {
                     setStyle(value as StyleKey);
-                    setStep("results");
-                  }}
-                />
-              )}
+               {step === "results" && (
+  <div className="mx-auto max-w-2xl px-3 sm:px-0">
+    <div className="text-sm uppercase tracking-[0.3em] text-white/45">
+      Results
+    </div>
 
-              {step === "results" && (
-                <div className="mx-auto max-w-xl">
-                  <div className="text-sm uppercase tracking-[0.3em] text-white/45">
-                    Results
-                  </div>
+    <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
+      {t.resultsTitle}
+    </h2>
+    <p className="mt-3 text-white/72">{t.resultsSubtitle}</p>
 
-                  <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
-                    {t.resultsTitle}
-                  </h2>
-                  <p className="mt-3 text-white/72">{t.resultsSubtitle}</p>
+    <div className="mt-4 rounded-[22px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-white/78">
+      {t.selectedCountry}:{" "}
+      <span className="font-semibold text-white">{country}</span>
+    </div>
 
-                  <div className="mt-4 rounded-[22px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-white/78">
-                    {t.selectedCountry}:{" "}
-                    <span className="font-semibold text-white">{country}</span>
-                  </div>
+    {!hasProviders || results.length === 0 ? (
+      <div className="mt-6 rounded-[24px] border border-amber-300/20 bg-amber-300/10 p-5">
+        <div className="text-lg font-bold text-amber-100">
+          {t.noProvidersTitle}
+        </div>
+        <p className="mt-2 text-sm leading-6 text-white/80">
+          {t.noProvidersText}
+        </p>
+      </div>
+    ) : (
+      <div className="mt-6 space-y-4">
+        {results.map((gift, index) => (
+          <div
+            key={gift.id}
+            className={`rounded-[24px] border p-4 shadow-xl ${
+              index === 0
+                ? "border-cyan-200/30 bg-gradient-to-br from-white/[0.16] to-cyan-200/[0.08]"
+                : "border-white/10 bg-white/[0.06]"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm uppercase tracking-[0.18em] text-white/45">
+                  {t.suggestedGift}
+                </div>
+                <div className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">
+                  {gift.title}
+                </div>
+              </div>
 
-                  {!hasProviders || results.length === 0 ? (
-                    <div className="mt-6 rounded-[24px] border border-amber-300/20 bg-amber-300/10 p-5">
-                      <div className="text-lg font-bold text-amber-100">
-                        {t.noProvidersTitle}
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-white/80">
-                        {t.noProvidersText}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-6 space-y-5">
-                      {results.map((gift, index) => (
-                        <div
-                          key={gift.id}
-                          className={`rounded-[26px] border p-5 shadow-xl ${
-                            index === 0
-                              ? "border-cyan-200/30 bg-gradient-to-br from-white/[0.16] to-cyan-200/[0.08]"
-                              : "border-white/10 bg-white/[0.06]"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="text-sm uppercase tracking-[0.18em] text-white/45">
-                                {t.suggestedGift}
-                              </div>
-                              <div className="mt-2 text-2xl font-bold leading-tight">
-                                {gift.title}
-                              </div>
-                            </div>
-
-                            {index === 0 && (
-                              <div className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-xs font-bold text-[#0c1b2c]">
-                            Best Match
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="mt-5 rounded-[20px] border border-white/10 bg-black/10 p-4">
-                            <div className="text-xs uppercase tracking-[0.15em] text-white/45">
-                              {t.whyGift}
-                            </div>
-                            <p className="mt-2 text-sm leading-6 text-white/80">
-                              {gift.reason}
-                            </p>
-                          </div>
-
-                          <div className="mt-5">
-                            <div className="text-sm font-semibold text-white/90">
-                              {t.availablePlaces}
-                            </div>
-
-                            <div className="mt-3 space-y-3">
-                              {gift.providers.map((provider) => (
-                                <div
-                                  key={provider.id}
-                                  className="rounded-[20px] border border-white/10 bg-white/[0.05] p-4"
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                      <div className="text-lg font-bold">
-                                        {provider.name}
-                                      </div>
-                                      <div className="mt-1 text-sm text-white/70">
-                                        {provider.address}
-                                      </div>
-                                      <div className="mt-1 text-sm text-white/70">
-                                        {provider.phone}
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-col items-end gap-2">
-                                      <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-xs text-white/85">
-                                        {provider.signal}
-                                      </div>
-                                      <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-sm font-semibold">
-                         90% Score
-                                      </div>
-                                    </div>
-                                  </div>
-
-<div className="mt-3 flex flex-col sm:flex-row gap-2">
-
-                                    <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-2 text-xs text-white/90">
-                                      {t.fromGiftMind}
-                                    </div>
-                                  </div>
-
-                                  <p className="mt-3 text-sm leading-6 text-white/78">
-                                    {provider.description}
-                                  </p>
-
-<div className="mt-4 flex flex-wrap gap-2">
-  <a
-    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      `${provider.name} ${provider.address}`
-    )}`}
-    target="_blank"
-    rel="noreferrer"
-    className="rounded-[16px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-2.5 text-sm font-bold text-[#0b1b2b]"
-  >
-    {t.go}
-  </a>
-
-  <a
-    href={`tel:${provider.phone}`}
-    className="rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white"
-  >
-    {t.call}
-  </a>
-
-  <a
-    href={`https://wa.me/${provider.phone.replace(/\D/g, "")}`}
-    target="_blank"
-    rel="noreferrer"
-    className="rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white"
-  >
-    WhatsApp
-  </a>
-</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={() => setStep("style")}
-                      className="flex-1 rounded-[20px] border border-white/12 bg-white/[0.06] px-4 py-3 font-medium text-white"
-                    >
-                      {t.back}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={resetAll}
-                      className="flex-1 rounded-[20px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-3 font-bold text-[#0b1b2b]"
-                    >
-                      {t.newSearch}
-                    </button>
-                  </div>
-
-                  <div className="mt-8 text-center">
-                    <button
-                      type="button"
-                      onClick={handleAskFriend}
-                      className="rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-sm text-white/90 transition hover:bg-white/[0.10]"
-                    >
-                      {t.askFriend}
-                    </button>
-                  </div>
+              {index === 0 && (
+                <div className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-xs font-bold text-[#0c1b2c]">
+                  Best Match
                 </div>
               )}
-            </section>
+            </div>
+
+            <div className="mt-4 rounded-[18px] border border-white/10 bg-black/10 p-3">
+              <div className="text-xs uppercase tracking-[0.15em] text-white/45">
+                {t.whyGift}
+              </div>
+              <p className="mt-2 text-sm leading-5 text-white/80">
+                {gift.reason}
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <div className="text-sm font-semibold text-white/90">
+                {t.availablePlaces}
+              </div>
+
+              <div className="mt-3 space-y-3">
+                {gift.providers.map((provider) => (
+                  <div
+                    key={provider.id}
+                    className="rounded-[18px] border border-white/10 bg-white/[0.05] p-3"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="text-base font-bold sm:text-lg">
+                          {provider.name}
+                        </div>
+                        <div className="mt-1 text-sm text-white/70">
+                          {provider.address}
+                        </div>
+                        <div className="mt-1 text-sm text-white/70">
+                          {provider.phone}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 sm:max-w-[220px] sm:justify-end">
+                        <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-xs text-white/85">
+                          {provider.signal}
+                        </div>
+                        <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-sm font-semibold">
+                          90% Score
+                        </div>
+                        <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-xs text-white/90">
+                          {t.fromGiftMind}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="mt-2 text-sm leading-5 text-white/78">
+                      {provider.description}
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <a
+                        href={`tel:${provider.phone}`}
+                        className="rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-3 text-center text-sm font-medium text-white"
+                      >
+                        {t.call}
+                      </a>
+
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          `${provider.name} ${provider.address}`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-[16px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-3 text-center text-sm font-bold text-[#0b1b2b]"
+                      >
+                        {t.go}
+                      </a>
+
+                      <a
+                        href={`https://wa.me/${provider.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="col-span-2 rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-3 text-center text-sm font-medium text-white"
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-    </main>
-  );
-}
-/* =========================
-   Small Components
-========================= */
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="rounded-[24px] border border-white/10 bg-black/10 p-5">
-      <div className="text-xs uppercase tracking-[0.25em] text-white/45">
-        {title}
-      </div>
-      <div className="mt-3 text-sm leading-6 text-white/80">{text}</div>
+    )}
+
+    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <button
+        type="button"
+        onClick={() => setStep("style")}
+        className="flex-1 rounded-[20px] border border-white/12 bg-white/[0.06] px-4 py-3 font-medium text-white"
+      >
+        {t.back}
+      </button>
+
+      <button
+        type="button"
+        onClick={resetAll}
+        className="flex-1 rounded-[20px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-3 font-bold text-[#0b1b2b]"
+      >
+        {t.newSearch}
+      </button>
     </div>
-  );
-}
 
-function AutoQuestionBlock<T extends string>({
-  title,
-  options,
-  selected,
-  onSelect,
-  onBack,
-  backText,
-}: {
-  title: string;
-  options: { key: T; label: string }[];
-  selected: T | null;
-  onSelect: (key: T) => void;
-  onBack: () => void;
-  backText: string;
-}) {
-  return (
-    <div className="mx-auto max-w-xl">
-      <h2 className="text-3xl font-bold leading-tight md:text-4xl">{title}</h2>
-      <p className="mt-3 text-white/72">
-        {/* intentional simple line */}
-      </p>
-
-      <div className="mt-6 grid gap-3">
-        {options.map((option) => {
-          const active = selected === option.key;
-          return (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => onSelect(option.key)}
-              className={`w-full rounded-[22px] border px-4 py-4 text-start transition duration-200 ${
-                active
-                  ? "border-transparent bg-gradient-to-br from-[#ffffff] to-[#dbeeff] text-[#0c1b2c] shadow-[0_14px_34px_rgba(148,204,255,0.30)]"
-                  : "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.10]"
-              }`}
-            >
-              <div className="text-base font-semibold">{option.label}</div>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-full rounded-[20px] border border-white/12 bg-white/[0.06] px-4 py-3 font-medium text-white sm:w-auto sm:min-w-[180px]"
-        >
-          {backText}
-        </button>
-      </div>
+    <div className="mt-8 text-center">
+      <button
+        type="button"
+        onClick={handleAskFriend}
+        className="rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-sm text-white/90 transition hover:bg-white/[0.10]"
+      >
+        {t.askFriend}
+      </button>
     </div>
-  );
-}
+  </div>
+)}
