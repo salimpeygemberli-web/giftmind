@@ -1378,7 +1378,8 @@ export default function GiftMindPage() {
                                     </div>
                                   </div>
 
-                                  <div className="mt-3 flex flex-wrap gap-2">
+<div className="mt-3 flex flex-col sm:flex-row gap-2">
+
                                     <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-2 text-xs text-white/90">
                                       {t.fromGiftMind}
                                     </div>
