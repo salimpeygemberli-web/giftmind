@@ -1094,6 +1094,45 @@ export default function GiftMindPage() {
               </div>
 
               <div className="mt-8">
+           <div className="mx-auto max-w-xl text-center mb-10">
+
+  <img
+    src="/logo.jpg"
+    alt="GiftMind"
+    className="w-full rounded-[28px] shadow-xl mb-6"
+  />
+
+  <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+    Choose Your Perfect Gift
+    <br />
+    in 60 Seconds
+  </h1>
+
+  <p className="mt-3 text-white/70 text-sm leading-6">
+    GiftMind analyzes emotion, relationship, occasion and budget
+    to suggest the perfect gift instantly.
+  </p>
+
+</div>
+  <img
+    src="/hero-giftmind.jpg"
+    alt="GiftMind Decision Engine"
+    className="w-full rounded-[28px] shadow-xl mb-6"
+  />
+
+  <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+    Choose Your Perfect Gift
+    <br />
+    in 60 Seconds
+  </h1>
+
+  <p className="mt-3 text-white/70 text-sm leading-6">
+    GiftMind analyzes emotion, relationship, occasion and budget
+    to suggest the perfect gift instantly.
+  </p>
+
+</div>
+
                 <h1
                   className={`max-w-2xl font-bold leading-[1.05] ${
                     isRtl ? "text-4xl md:text-5xl" : "text-4xl md:text-6xl"
