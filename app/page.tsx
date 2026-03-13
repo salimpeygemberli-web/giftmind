@@ -1095,7 +1095,9 @@ export default function GiftMindPage() {
 
               <div className="mt-8">
            <div className="mx-auto max-w-xl text-center mb-10">
-
+<div className="text-red-500 text-3xl">
+TEST
+</div>
   <img
     src="/logo.jpg"
     alt="GiftMind"
