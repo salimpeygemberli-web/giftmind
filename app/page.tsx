@@ -1114,9 +1114,7 @@ export default function GiftMindPage() {
 </div> 
 
 </div>
-  <img
-    src="/hero-giftmind.jpg"
-    alt="GiftMind Decision Engine"
+  
     className="w-full rounded-[28px] shadow-xl mb-6"
   />
 
