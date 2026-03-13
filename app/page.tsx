@@ -1373,8 +1373,8 @@ export default function GiftMindPage() {
                                         {provider.signal}
                                       </div>
                                       <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-sm font-semibold">
-                                     {provider?.score ?? 90}% {t.score}
-  
+                                    {(provider as any).score ?? 90}% {t.score}
+
                                       </div>
                                     </div>
                                   </div>
