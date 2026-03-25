@@ -1,393 +1,287 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  ExternalLink,
+  Globe,
+  Instagram,
+  MapPin,
+  MessageCircle,
+  Phone,
+  RefreshCcw,
+  Share2,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
+import { selectTopGifts } from "@/app/lib/giftEngine";
 
-/* =========================
-   Types
-========================= */
-type Lang = "ar" | "en" | "fr" | "tr" | "es";
-type Step = "setup" | "recipient" | "occasion" | "budget" | "style" | "results";
+type Language = "en" | "ar" | "fr" | "tr" | "es";
+type BudgetLevel = "low" | "medium" | "high";
+type RecipientKey = "partner" | "parent" | "friend" | "colleague" | "child";
+type OccasionKey =
+  | "birthday"
+  | "anniversary"
+  | "wedding"
+  | "graduation"
+  | "new_baby";
+type StyleKey =
+  | "minimalist"
+  | "luxury"
+  | "handmade"
+  | "techie"
+  | "experience";
 
-type RecipientKey = "partner" | "friend" | "family" | "colleague" | "child";
-type OccasionKey = "birthday" | "anniversary" | "thankyou" | "celebration";
-type BudgetKey = "low" | "medium" | "high";
-type StyleKey = "elegant" | "romantic" | "fun" | "luxury";
+type Step = "landing" | "quiz" | "results";
 
-type GiftConcept = {
-  id: string;
-  titles: Record<Lang, string>;
-  category: string;
-  recipientFit: RecipientKey[];
-  occasionFit: OccasionKey[];
-  budgetFit: BudgetKey[];
-  styleFit: StyleKey[];
-  baseScore: number;
-};
-
-type Provider = {
+interface Merchant {
   id: string;
   name: string;
   country: string;
-  categories: string[];
-  recipientFit: RecipientKey[];
-  occasionFit: OccasionKey[];
-  budgetFit: BudgetKey[];
-  styleFit: StyleKey[];
-  qualityScore: number;
-  speedScore: number;
-  friendBoost: number;
-  address: string;
-  phone: string;
-  website: string;
-  description: Partial<Record<Lang, string>>;
-};
-
-type ProviderResult = {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  website: string;
-  score: number;
-  signal: string;
+  city: string;
+  category: string;
   description: string;
-};
+  recipientTags: RecipientKey[];
+  occasionTags: OccasionKey[];
+  styleTags: StyleKey[];
+  budgetLevel: BudgetLevel;
+  phone: string;
+  whatsapp: string;
+  instagram?: string;
+  tiktok?: string;
+  locationQuery: string;
+  website: string;
+  trusted: boolean;
+  subscriptionPlan?: "free" | "pro" | "premium";
+  isOnline?: boolean;
+}
 
-type GiftResult = {
-  id: string;
+interface Answers {
+  recipient: RecipientKey | "";
+  occasion: OccasionKey | "";
+  budget: BudgetLevel | "";
+  style: StyleKey | "";
+ emotion: string; 
+}
+
+interface Translation {
   title: string;
-  reason: string;
-  providers: ProviderResult[];
+  subtitle: string;
+  badge: string;
+  selectCountry: string;
+  selectLanguage: string;
+  start: string;
+  topMatches: string;
+  bestMatch: string;
+  trusted: string;
+  premium: string;
+  visit: string;
+  share: string;
+  copied: string;
+  noMatches: string;
+  match: string;
+  whyFits: string;
+  restart: string;
+  back: string;
+  questions: {
+    recipient: string;
+    occasion: string;
+    budget: string;
+    style: string;
+    
+  };
+  options: {
+    recipient: Record<RecipientKey, string>;
+    occasion: Record<OccasionKey, string>;
+    budget: Record<BudgetLevel, string>;
+    style: Record<StyleKey, string>;
+  };
+  reasons: {
+    luxury: string;
+    birthday: string;
+    budget: string;
+    partner: string;
+    handmade: string;
+    techie: string;
+    experience: string;
+    minimalist: string;
+    trusted: string;
+  };
+  footer: string;
+  shareTitle: string;
+  shareText: string;
+}
+const translations: Partial<Record<Language, Translation>> = {
+  en: {
+    title: "GiftMind",
+    subtitle: "AI-Powered Gift Decision Engine",
+    badge: "60S Discovery Mode",
+    selectCountry: "Select Country",
+    selectLanguage: "Select Language",
+    start: "Start Discovery",
+    topMatches: "Top 3 Matches",
+    bestMatch: "Best Match",
+    trusted: "GiftMind Trusted",
+    premium: "Premium",
+    visit: "Visit Merchant",
+    share: "Ask a Friend",
+    copied: "Link copied!",
+noMatches: "We found a gift idea, but no matching local merchant is available yet. Try another country.",
+    match: "Match",
+    whyFits: "Why this fits",
+    restart: "Restart",
+    back: "Back",
+    questions: {
+      recipient: "Who is the gift for?",
+      occasion: "What is the occasion?",
+      budget: "What is your budget?",
+      style: "What style is preferred?",
+      emotion: "What feeling do you want this gift to express?",
+    },
+ options: {
+  recipient: {
+    partner: "Partner",
+    parent: "Parent",
+    friend: "Friend",
+    colleague: "Colleague",
+    child: "Child",
+  },
+
+  occasion: {
+    birthday: "Birthday",
+    anniversary: "Anniversary",
+    wedding: "Wedding",
+    graduation: "Graduation",
+    new_baby: "New Baby",
+  },
+
+  budget: {
+    low: "Low",
+    medium: "Medium",
+    high: "High",
+  },
+
+  style: {
+    minimalist: "Minimalist",
+    luxury: "Luxury",
+    handmade: "Handmade",
+    techie: "Tech & Gadgets",
+    experience: "Experience",
+  },
+
+  emotions: {
+    love: "Love",
+    care: "Care",
+    appreciation: "Appreciation",
+    surprise: "Surprise",
+    support: "Support",
+    celebration: "Celebration",
+    nostalgia: "Nostalgia",
+    respect: "Respect",
+  },
+
+    },
+    reasons: {
+      luxury: "Matches your luxury style.",
+      birthday: "Perfect for birthday occasions.",
+      budget: "Fits your selected budget.",
+      partner: "A strong fit for a partner gift.",
+      handmade: "A unique handmade choice.",
+      techie: "Perfect for tech lovers.",
+      experience: "A memorable experience gift.",
+      minimalist: "A clean and minimalist option.",
+      trusted: "Chosen from a trusted GiftMind merchant.",
+    },
+    footer: "GiftMind AI Engine 2026",
+    shareTitle: "Check out my GiftMind results!",
+    shareText: "I found the perfect gift using GiftMind!",
+  },
+  ar: {
+    title: "GiftMind",
+    subtitle: "محرك اتخاذ قرارات الهدايا بالذكاء الاصطناعي",
+    badge: "وضع الاكتشاف في 60 ثانية",
+    selectCountry: "اختر الدولة",
+    selectLanguage: "اختر اللغة",
+    start: "ابدأ الاكتشاف",
+    topMatches: "أفضل 3 نتائج",
+    bestMatch: "الأفضل تطابقاً",
+    trusted: "موثوق من GiftMind",
+    premium: "مميز",
+    visit: "زيارة المتجر",
+    share: "اسأل صديق",
+    copied: "تم نسخ الرابط!",
+   noMatches: "وجدنا فكرة هدية مناسبة، لكن لا يوجد تاجر محلي مناسب حالياً. جرّب دولة أخرى.",
+    match: "التطابق",
+    whyFits: "لماذا هذا الاختيار",
+    restart: "إعادة البدء",
+    back: "رجوع",
+    questions: {
+      recipient: "لمن الهدية؟",
+      occasion: "ما هي المناسبة؟",
+      budget: "ما هي ميزانيتك؟",
+      style: "ما هو الأسلوب المفضل؟",
+      emotions: {
+  love: "Love",
+  care: "Care",
+  appreciation: "Appreciation",
+  surprise: "Surprise",
+  support: "Support",
+  celebration: "Celebration",
+  nostalgia: "Nostalgia",
+  respect: "Respect",
+},
+},
+options: {
+      recipient: {
+        partner: "الشريك",
+        parent: "الوالدين",
+        friend: "صديق",
+        colleague: "زميل عمل",
+        child: "طفل",
+      },
+      occasion: {
+        birthday: "عيد ميلاد",
+        anniversary: "ذكرى سنوية",
+        wedding: "زفاف",
+        graduation: "تخرج",
+        new_baby: "مولود جديد",
+      },
+      budget: {
+        low: "اقتصادي",
+        medium: "متوسط",
+        high: "فاخر",
+      },
+      style: {
+        minimalist: "بسيط",
+        luxury: "فاخر",
+        handmade: "يدوي الصنع",
+        techie: "تقنية وأجهزة",
+        experience: "تجربة",
+      },
+   },
+    reasons: {
+      luxury: "يتناسب مع ذوقك الفاخر.",
+      birthday: "مثالي لمناسبات أعياد الميلاد.",
+      budget: "يناسب ميزانيتك المختارة.",
+      partner: "اختيار قوي لهدية الشريك.",
+      handmade: "اختيار يدوي فريد.",
+      techie: "مثالي لمحبي التقنية.",
+      experience: "هدية تجربة لا تُنسى.",
+      minimalist: "اختيار بسيط وأنيق.",
+      trusted: "تم اختياره من تاجر موثوق في GiftMind.",
+    },
+    footer: "محرك GiftMind 2026",
+    shareTitle: "شاهد نتائجي في GiftMind!",
+   shareText: "وجدت الهدية المثالية باستخدام GiftMind!"
+  }
 };
 
-/* =========================
-   UI Text
-========================= */
-const UI = {
-  ar: {
-    appName: "GiftMind",
-    heroTitle: "احصل على هديتك خلال 60 ثانية",
-    heroSubtitle:
-      "نقترح الهدية أولًا، ثم نعرض أفضل الجهات التي تستطيع توفيرها فعليًا.",
-    setupTitle: "ابدأ قرارك",
-    country: "الدولة",
-    language: "اللغة",
-    continue: "ابدأ",
-    recipient: "لمن الهدية؟",
-    occasion: "ما المناسبة؟",
-    budget: "ما الميزانية؟",
-    style: "ما النمط المطلوب؟",
-    back: "رجوع",
-    resultsTitle: "أفضل اقتراحات الهدايا لك",
-    resultsSubtitle: "كل هدية معها أفضل الجهات التي تستطيع توفيرها.",
-    suggestedGift: "الهدية المقترحة",
-    whyGift: "سبب اختيار الهدية",
-    availablePlaces: "الجهات المتاحة",
-    noProvidersTitle: "لا يوجد مزودون حاليًا في هذه الدولة",
-    noProvidersText:
-      "يمكنك تجربة التدفق، لكن لا توجد نتائج فعلية لهذه الدولة في الوقت الحالي.",
-    go: "اذهب →",
-    call: "اتصل",
-    askFriend: "✨ استشر صديقًا",
-    newSearch: "بحث جديد",
-    selectedCountry: "الدولة المختارة",
-    fromGiftMind: "Customer from GiftMind",
-    availability: "التوفر",
-    availabilityYes: "يوجد مزودون متاحون حاليًا في هذه الدولة.",
-    availabilityNo: "لا يوجد مزودون متاحون حاليًا في هذه الدولة.",
-    socialTitle: "تابع GiftMind",
-    top3: "أفضل 3 فقط",
-    top3Text: "خيارات أقل، وضوح أكبر، وتنفيذ أسرع.",
-    giftFirst: "الهدية أولًا",
-    giftFirstText: "نقترح الهدية أولًا ثم نريك أين تحصل عليها.",
-    smoothFlow: "تدفق واحد",
-    smoothFlowText: "كل شيء يحدث داخل تجربة واحدة حديثة وسريعة.",
-    recipients: {
-      partner: "شريك",
-      friend: "صديق",
-      family: "العائلة",
-      colleague: "زميل",
-      child: "طفل",
-    },
-    occasions: {
-      birthday: "عيد ميلاد",
-      anniversary: "ذكرى",
-      thankyou: "شكر",
-      celebration: "احتفال",
-    },
-    budgets: {
-      low: "منخفضة",
-      medium: "متوسطة",
-      high: "مرتفعة",
-    },
-    styles: {
-      elegant: "أنيق",
-      romantic: "رومانسي",
-      fun: "مرح",
-      luxury: "فاخر",
-    },
-  },
-  en: {
-    appName: "GiftMind",
-    heroTitle: "Get Your Perfect Gift in 60 Seconds",
-    heroSubtitle:
-      "Gift first. Then the best places that can actually provide it.",
-    setupTitle: "Start your decision",
-    country: "Country",
-    language: "Language",
-    continue: "Start",
-    recipient: "Who is the gift for?",
-    occasion: "What is the occasion?",
-    budget: "What is your budget?",
-    style: "What style do you want?",
-    back: "Back",
-    resultsTitle: "Best gift suggestions for you",
-    resultsSubtitle: "Each gift comes with the best places that can provide it.",
-    suggestedGift: "Suggested gift",
-    whyGift: "Why this gift",
-    availablePlaces: "Available places",
-    noProvidersTitle: "No providers available in this country right now",
-    noProvidersText:
-      "You can still explore the flow, but live results are not available for this country at the moment.",
-    go: "Go →",
-    call: "Call",
-    askFriend: "✨ Ask a Friend",
-    newSearch: "New Search",
-    selectedCountry: "Selected country",
-    fromGiftMind: "Customer from GiftMind",
-    availability: "Availability",
-    availabilityYes: "Providers are currently available in this country.",
-    availabilityNo: "No providers are currently available in this country.",
-    socialTitle: "Follow GiftMind",
-    top3: "Top 3 only",
-    top3Text: "Less noise, clearer choices, faster action.",
-    giftFirst: "Gift first",
-    giftFirstText: "We suggest the gift first, then show where to get it.",
-    smoothFlow: "One smooth flow",
-    smoothFlowText: "Everything happens in one modern, fast experience.",
-    recipients: {
-      partner: "Partner",
-      friend: "Friend",
-      family: "Family",
-      colleague: "Colleague",
-      child: "Child",
-    },
-    occasions: {
-      birthday: "Birthday",
-      anniversary: "Anniversary",
-      thankyou: "Thank You",
-      celebration: "Celebration",
-    },
-    budgets: {
-      low: "Low",
-      medium: "Medium",
-      high: "High",
-    },
-    styles: {
-      elegant: "Elegant",
-      romantic: "Romantic",
-      fun: "Fun",
-      luxury: "Luxury",
-    },
-  },
-  fr: {
-    appName: "GiftMind",
-    heroTitle: "Trouvez votre cadeau en 60 secondes",
-    heroSubtitle:
-      "D’abord le cadeau, puis les meilleurs endroits pour l’obtenir.",
-    setupTitle: "Commencez votre décision",
-    country: "Pays",
-    language: "Langue",
-    continue: "Commencer",
-    recipient: "À qui est destiné le cadeau ?",
-    occasion: "Quelle est l'occasion ?",
-    budget: "Quel est votre budget ?",
-    style: "Quel style souhaitez-vous ?",
-    back: "Retour",
-    resultsTitle: "Meilleures suggestions de cadeaux",
-    resultsSubtitle:
-      "Chaque cadeau est accompagné des meilleurs endroits pour l’obtenir.",
-    suggestedGift: "Cadeau suggéré",
-    whyGift: "Pourquoi ce cadeau",
-    availablePlaces: "Lieux disponibles",
-    noProvidersTitle: "Aucun prestataire disponible dans ce pays",
-    noProvidersText:
-      "Vous pouvez parcourir l’expérience, mais il n’y a pas encore de résultats réels pour ce pays.",
-    go: "Go →",
-    call: "Appeler",
-    askFriend: "✨ Demander à un ami",
-    newSearch: "Nouvelle recherche",
-    selectedCountry: "Pays sélectionné",
-    fromGiftMind: "Customer from GiftMind",
-    availability: "Disponibilité",
-    availabilityYes: "Des prestataires sont disponibles dans ce pays.",
-    availabilityNo: "Aucun prestataire n’est disponible dans ce pays.",
-    socialTitle: "Suivre GiftMind",
-    top3: "Top 3 seulement",
-    top3Text: "Moins de bruit, plus de clarté, action plus rapide.",
-    giftFirst: "Le cadeau d’abord",
-    giftFirstText: "Nous suggérons d’abord le cadeau, puis où l’obtenir.",
-    smoothFlow: "Un seul parcours",
-    smoothFlowText: "Tout se passe dans une expérience moderne et rapide.",
-    recipients: {
-      partner: "Partenaire",
-      friend: "Ami",
-      family: "Famille",
-      colleague: "Collègue",
-      child: "Enfant",
-    },
-    occasions: {
-      birthday: "Anniversaire",
-      anniversary: "Anniversaire de couple",
-      thankyou: "Remerciement",
-      celebration: "Célébration",
-    },
-    budgets: {
-      low: "Faible",
-      medium: "Moyen",
-      high: "Élevé",
-    },
-    styles: {
-      elegant: "Élégant",
-      romantic: "Romantique",
-      fun: "Ludique",
-      luxury: "Luxe",
-    },
-  },
-  tr: {
-    appName: "GiftMind",
-    heroTitle: "Hediyenizi 60 saniyede bulun",
-    heroSubtitle:
-      "Önce hediye fikri, sonra onu sağlayabilecek en iyi yerler.",
-    setupTitle: "Kararına başla",
-    country: "Ülke",
-    language: "Dil",
-    continue: "Başla",
-    recipient: "Hediye kimin için?",
-    occasion: "Durum nedir?",
-    budget: "Bütçeniz nedir?",
-    style: "Nasıl bir stil istiyorsunuz?",
-    back: "Geri",
-    resultsTitle: "Sizin için en iyi hediye önerileri",
-    resultsSubtitle: "Her hediye için en iyi uygun yerler gösterilir.",
-    suggestedGift: "Önerilen hediye",
-    whyGift: "Neden bu hediye",
-    availablePlaces: "Uygun yerler",
-    noProvidersTitle: "Bu ülkede şu anda sağlayıcı yok",
-    noProvidersText:
-      "Akışı görebilirsiniz, ancak bu ülke için canlı sonuç henüz yok.",
-    go: "Go →",
-    call: "Ara",
-    askFriend: "✨ Bir Arkadaşa Sor",
-    newSearch: "Yeni Arama",
-    selectedCountry: "Seçilen ülke",
-    fromGiftMind: "Customer from GiftMind",
-    availability: "Uygunluk",
-    availabilityYes: "Bu ülkede sağlayıcılar mevcut.",
-    availabilityNo: "Bu ülkede şu anda sağlayıcı yok.",
-    socialTitle: "GiftMind'ı takip et",
-    top3: "Sadece Top 3",
-    top3Text: "Daha az karmaşa, daha net seçimler, daha hızlı hareket.",
-    giftFirst: "Önce hediye",
-    giftFirstText: "Önce hediyeyi önerir, sonra nereden alacağını gösteririz.",
-    smoothFlow: "Tek akış",
-    smoothFlowText: "Her şey tek, modern ve hızlı deneyimde olur.",
-    recipients: {
-      partner: "Partner",
-      friend: "Arkadaş",
-      family: "Aile",
-      colleague: "İş Arkadaşı",
-      child: "Çocuk",
-    },
-    occasions: {
-      birthday: "Doğum Günü",
-      anniversary: "Yıldönümü",
-      thankyou: "Teşekkür",
-      celebration: "Kutlama",
-    },
-    budgets: {
-      low: "Düşük",
-      medium: "Orta",
-      high: "Yüksek",
-    },
-    styles: {
-      elegant: "Zarif",
-      romantic: "Romantik",
-      fun: "Eğlenceli",
-      luxury: "Lüks",
-    },
-  },
-  es: {
-    appName: "GiftMind",
-    heroTitle: "Consigue tu regalo en 60 segundos",
-    heroSubtitle:
-      "Primero el regalo, luego los mejores lugares para conseguirlo.",
-    setupTitle: "Empieza tu decisión",
-    country: "País",
-    language: "Idioma",
-    continue: "Empezar",
-    recipient: "¿Para quién es el regalo?",
-    occasion: "¿Cuál es la ocasión?",
-    budget: "¿Cuál es tu presupuesto?",
-    style: "¿Qué estilo quieres?",
-    back: "Volver",
-    resultsTitle: "Mejores sugerencias de regalos",
-    resultsSubtitle: "Cada regalo muestra los mejores lugares para conseguirlo.",
-    suggestedGift: "Regalo sugerido",
-    whyGift: "Por qué este regalo",
-    availablePlaces: "Lugares disponibles",
-    noProvidersTitle: "No hay proveedores disponibles en este país",
-    noProvidersText:
-      "Puedes explorar el flujo, pero todavía no hay resultados reales para este país.",
-    go: "Go →",
-    call: "Llamar",
-    askFriend: "✨ Preguntar a un amigo",
-    newSearch: "Nueva búsqueda",
-    selectedCountry: "País seleccionado",
-    fromGiftMind: "Customer from GiftMind",
-    availability: "Disponibilidad",
-    availabilityYes: "Hay proveedores disponibles en este país.",
-    availabilityNo: "No hay proveedores disponibles en este país.",
-    socialTitle: "Sigue a GiftMind",
-    top3: "Solo Top 3",
-    top3Text: "Menos ruido, decisiones más claras, acción más rápida.",
-    giftFirst: "Primero el regalo",
-    giftFirstText: "Sugerimos primero el regalo y luego dónde conseguirlo.",
-    smoothFlow: "Un solo flujo",
-    smoothFlowText: "Todo ocurre en una experiencia moderna y rápida.",
-    recipients: {
-      partner: "Pareja",
-      friend: "Amigo",
-      family: "Familia",
-      colleague: "Colega",
-      child: "Niño",
-    },
-    occasions: {
-      birthday: "Cumpleaños",
-      anniversary: "Aniversario",
-      thankyou: "Agradecimiento",
-      celebration: "Celebración",
-    },
-    budgets: {
-      low: "Bajo",
-      medium: "Medio",
-      high: "Alto",
-    },
-    styles: {
-      elegant: "Elegante",
-      romantic: "Romántico",
-      fun: "Divertido",
-      luxury: "Lujo",
-    },
-  },
-} as const;
-
-/* =========================
-   Countries
-========================= */
-const COUNTRIES = [
+const countries = [
   "Jordan",
-  "United Arab Emirates",
+  "UAE",
   "Saudi Arabia",
   "Qatar",
   "Kuwait",
@@ -395,1184 +289,1400 @@ const COUNTRIES = [
   "Oman",
   "Turkey",
   "Egypt",
-  "Iraq",
-  "Lebanon",
-  "United Kingdom",
-  "United States",
+  "France",
+  "Germany",
+  "UK",
+  "USA",
 ];
 
-/* =========================
-   Gift Concepts
-========================= */
-const GIFT_CONCEPTS: GiftConcept[] = [
-  {
-    id: "fine-dining",
-    titles: {
-      ar: "تجربة عشاء راقية",
-      en: "Fine Dining Experience",
-      fr: "Expérience gastronomique",
-      tr: "Seçkin Akşam Yemeği Deneyimi",
-      es: "Experiencia gastronómica premium",
-    },
-    category: "dining",
-    recipientFit: ["partner", "friend", "family", "colleague"],
-    occasionFit: ["birthday", "anniversary", "celebration", "thankyou"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    baseScore: 9,
-  },
-  {
-    id: "luxury-flowers",
-    titles: {
-      ar: "تنسيق زهور فاخر",
-      en: "Luxury Flower Arrangement",
-      fr: "Composition florale de luxe",
-      tr: "Lüks Çiçek Aranjmanı",
-      es: "Arreglo floral de lujo",
-    },
-    category: "flowers",
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    baseScore: 8,
-  },
-  {
-    id: "spa-retreat",
-    titles: {
-      ar: "هدية سبا واسترخاء",
-      en: "Spa & Relaxation Gift",
-      fr: "Cadeau spa et détente",
-      tr: "Spa ve Rahatlama Hediyesi",
-      es: "Regalo de spa y relajación",
-    },
-    category: "spa",
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "luxury"],
-    baseScore: 7,
-  },
-  {
-    id: "premium-chocolate",
-    titles: {
-      ar: "علبة شوكولاتة فاخرة",
-      en: "Premium Chocolate Gift Box",
-      fr: "Coffret de chocolat premium",
-      tr: "Premium Çikolata Hediye Kutusu",
-      es: "Caja premium de chocolates",
-    },
-    category: "chocolate",
-    recipientFit: ["partner", "friend", "family", "colleague", "child"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["fun", "elegant", "romantic"],
-    baseScore: 7,
-  },
-  {
-    id: "designer-perfume",
-    titles: {
-      ar: "هدية عطر مصمم",
-      en: "Designer Perfume Gift",
-      fr: "Cadeau parfum de créateur",
-      tr: "Tasarımcı Parfüm Hediyesi",
-      es: "Regalo de perfume de diseñador",
-    },
-    category: "perfume",
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    baseScore: 8,
-  },
-  {
-    id: "gift-box",
-    titles: {
-      ar: "صندوق هدايا مخصص",
-      en: "Personalised Gift Box",
-      fr: "Coffret cadeau personnalisé",
-      tr: "Kişiselleştirilmiş Hediye Kutusu",
-      es: "Caja de regalo personalizada",
-    },
-    category: "giftbox",
-    recipientFit: ["partner", "friend", "family", "colleague", "child"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["fun", "elegant"],
-    baseScore: 6,
-  },
-  {
-    id: "jewellery",
-    titles: {
-      ar: "قطعة مجوهرات أنيقة",
-      en: "Elegant Jewellery Piece",
-      fr: "Bijou élégant",
-      tr: "Zarif Takı Parçası",
-      es: "Joya elegante",
-    },
-    category: "jewellery",
-    recipientFit: ["partner", "family"],
-    occasionFit: ["birthday", "anniversary", "celebration"],
-    budgetFit: ["high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    baseScore: 9,
-  },
+const languages: { code: Language; name: string }[] = [
+  { code: "en", name: "English" },
+  { code: "ar", name: "العربية" },
+  { code: "fr", name: "Français" },
+  { code: "tr", name: "Türkçe" },
+  { code: "es", name: "Español" },
 ];
 
-/* =========================
-   Providers
-========================= */
-const PROVIDERS: Provider[] = [
+const merchants: Merchant[] = [
   {
-    id: "p1",
-    name: "La Maison Lounge",
+    id: "1",
+    name: "Luxe Gifts Amman",
     country: "Jordan",
-    categories: ["dining"],
-    recipientFit: ["partner", "friend", "family", "colleague"],
-    occasionFit: ["birthday", "anniversary", "celebration", "thankyou"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 9,
-    speedScore: 6,
-    friendBoost: 8,
-    address: "Amman, Abdoun",
-    phone: "+962790000111",
-    website: "https://example.com/la-maison-lounge",
-    description: {
-      ar: "عشاء أنيق بأجواء وتقديم فاخر.",
-      en: "Elegant dining with premium atmosphere and presentation.",
-      fr: "Restaurant élégant avec une présentation premium.",
-      tr: "Premium atmosferli şık yemek deneyimi.",
-      es: "Cena elegante con ambiente y presentación premium.",
-    },
+    city: "Amman",
+    category: "Luxury Gifts",
+    description: "Premium luxury gift boutique with curated selections.",
+    recipientTags: ["partner", "parent", "colleague"],
+    occasionTags: ["anniversary", "birthday", "wedding"],
+    styleTags: ["luxury", "minimalist"],
+    budgetLevel: "high",
+    phone: "+962791234567",
+    whatsapp: "+962791234567",
+   instagram: "nike",
+    tiktok: "luxegiftsamman",
+    locationQuery: "Luxe Gifts Amman Jordan",
+   website: "https://google.com",
+trusted: true,
+    subscriptionPlan: "premium",
   },
   {
-    id: "p2",
-    name: "Bloom Gallery",
+    id: "2",
+    name: "Handmade Haven",
     country: "Jordan",
-    categories: ["flowers"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 8,
-    speedScore: 8,
-    friendBoost: 8,
-    address: "Amman, Sweifieh",
-    phone: "+962790000222",
-    website: "https://example.com/bloom-gallery",
-    description: {
-      ar: "تنسيقات زهور راقية مع جاهزية محلية قوية.",
-      en: "Refined floral arrangements with strong local readiness.",
-      fr: "Compositions florales raffinées et rapides.",
-      tr: "Hızlı ve zarif çiçek düzenlemeleri.",
-      es: "Arreglos florales refinados y rápidos.",
-    },
+    city: "Amman",
+    category: "Artisan Crafts",
+    description: "Unique handcrafted gifts made by local artisans.",
+    recipientTags: ["friend", "parent", "partner"],
+    occasionTags: ["birthday", "graduation", "new_baby"],
+    styleTags: ["handmade", "minimalist"],
+    budgetLevel: "medium",
+    phone: "+962797654321",
+    whatsapp: "+962797654321",
+    instagram: "handmadehaven_jo",
+    locationQuery: "Handmade Haven Amman Jordan",
+    website: "https://handmadehaven.jo",
+    trusted: true,
+    subscriptionPlan: "pro",
   },
   {
-    id: "p3",
-    name: "Aura Spa",
+    id: "3",
+    name: "Tech Treasures",
     country: "Jordan",
-    categories: ["spa"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "luxury"],
-    qualityScore: 8,
-    speedScore: 5,
-    friendBoost: 7,
-    address: "Amman, Dabouq",
-    phone: "+962790000333",
-    website: "https://example.com/aura-spa",
-    description: {
-      ar: "خيار عناية واسترخاء بأسلوب فاخر.",
-      en: "Wellness-focused gift option with premium treatment style.",
-      fr: "Option bien-être avec une touche premium.",
-      tr: "Premium dokunuşlu rahatlama seçeneği.",
-      es: "Opción wellness con toque premium.",
-    },
+    city: "Amman",
+    category: "Technology",
+    description: "Latest gadgets and tech gifts for all ages.",
+    recipientTags: ["child", "friend", "colleague"],
+    occasionTags: ["birthday", "graduation"],
+    styleTags: ["techie"],
+    budgetLevel: "medium",
+    phone: "+962781112233",
+    whatsapp: "+962781112233",
+    instagram: "techtreasures_jo",
+    tiktok: "techtreasuresjo",
+    locationQuery: "Tech Treasures Amman Jordan",
+    website: "https://techtreasures.jo",
+    trusted: false,
+    subscriptionPlan: "free",
   },
   {
-    id: "p4",
-    name: "Maison Cacao",
+    id: "4",
+    name: "Experience Arabia",
+    country: "UAE",
+    city: "Dubai",
+    category: "Experiences",
+    description: "Unforgettable experience gifts across the Emirates.",
+    recipientTags: ["partner", "friend", "parent"],
+    occasionTags: ["anniversary", "birthday", "wedding"],
+    styleTags: ["experience", "luxury"],
+    budgetLevel: "high",
+    phone: "+971501234567",
+    whatsapp: "+971501234567",
+    instagram: "experiencearabia",
+    tiktok: "experiencearabia",
+    locationQuery: "Experience Arabia Dubai UAE",
+    website: "https://experiencearabia.ae",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "5",
+    name: "Baby Bliss UAE",
+    country: "UAE",
+    city: "Abu Dhabi",
+    category: "Baby & Kids",
+    description: "Premium baby gifts and nursery essentials.",
+    recipientTags: ["child", "parent"],
+    occasionTags: ["new_baby", "birthday"],
+    styleTags: ["minimalist", "luxury"],
+    budgetLevel: "high",
+    phone: "+971509876543",
+    whatsapp: "+971509876543",
+    instagram: "babyblissuae",
+    locationQuery: "Baby Bliss Abu Dhabi UAE",
+    website: "https://babybliss.ae",
+    trusted: true,
+    subscriptionPlan: "pro",
+  },
+  {
+    id: "6",
+    name: "Saudi Luxe Collection",
+    country: "Saudi Arabia",
+    city: "Riyadh",
+    category: "Luxury Gifts",
+    description: "Exclusive luxury gift collection for special occasions.",
+    recipientTags: ["partner", "parent", "colleague"],
+    occasionTags: ["wedding", "anniversary", "graduation"],
+    styleTags: ["luxury"],
+    budgetLevel: "high",
+    phone: "+966501234567",
+    whatsapp: "+966501234567",
+    instagram: "saudiluxe",
+    tiktok: "saudiluxecollection",
+    locationQuery: "Saudi Luxe Collection Riyadh Saudi Arabia",
+    website: "https://saudiluxe.sa",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "7",
+    name: "Riyadh Crafts",
+    country: "Saudi Arabia",
+    city: "Riyadh",
+    category: "Handmade",
+    description: "Traditional Saudi handmade crafts and gifts.",
+    recipientTags: ["friend", "parent", "colleague"],
+    occasionTags: ["birthday", "graduation"],
+    styleTags: ["handmade"],
+    budgetLevel: "low",
+    phone: "+966559876543",
+    whatsapp: "+966559876543",
+    instagram: "riyadhcrafts",
+    locationQuery: "Riyadh Crafts Saudi Arabia",
+    website: "https://riyadhcrafts.sa",
+    trusted: false,
+    subscriptionPlan: "free",
+  },
+  {
+    id: "8",
+    name: "Qatar Premium Gifts",
+    country: "Qatar",
+    city: "Doha",
+    category: "Premium Gifts",
+    description: "High-end gift solutions for discerning tastes.",
+    recipientTags: ["partner", "colleague", "parent"],
+    occasionTags: ["anniversary", "wedding", "birthday"],
+    styleTags: ["luxury", "minimalist"],
+    budgetLevel: "high",
+    phone: "+97433001234",
+    whatsapp: "+97433001234",
+    instagram: "qatarpremiumgifts",
+    locationQuery: "Qatar Premium Gifts Doha",
+    website: "https://qatarpremium.qa",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "9",
+    name: "Kuwait Gift House",
+    country: "Kuwait",
+    city: "Kuwait City",
+    category: "Gift Shop",
+    description: "One-stop shop for all occasions.",
+    recipientTags: ["friend", "child", "partner"],
+    occasionTags: ["birthday", "new_baby", "graduation"],
+    styleTags: ["minimalist", "techie"],
+    budgetLevel: "medium",
+    phone: "+96599001234",
+    whatsapp: "+96599001234",
+    instagram: "kuwaitgifthouse",
+    locationQuery: "Kuwait Gift House Kuwait City",
+    website: "https://kuwaitgifthouse.kw",
+    trusted: true,
+    subscriptionPlan: "pro",
+  },
+  {
+    id: "10",
+    name: "Bahrain Artisans",
+    country: "Bahrain",
+    city: "Manama",
+    category: "Artisan Crafts",
+    description: "Local artisan products and handmade gifts.",
+    recipientTags: ["friend", "parent"],
+    occasionTags: ["birthday", "anniversary"],
+    styleTags: ["handmade"],
+    budgetLevel: "low",
+    phone: "+97333001234",
+    whatsapp: "+97333001234",
+    instagram: "bahrainartisans",
+    locationQuery: "Bahrain Artisans Manama",
+    website: "https://bahrainartisans.bh",
+    trusted: false,
+    subscriptionPlan: "free",
+  },
+  {
+    id: "11",
+    name: "Oman Traditions",
+    country: "Oman",
+    city: "Muscat",
+    category: "Traditional Gifts",
+    description: "Authentic Omani traditional gifts and souvenirs.",
+    recipientTags: ["parent", "friend", "colleague"],
+    occasionTags: ["birthday", "wedding"],
+    styleTags: ["handmade", "luxury"],
+    budgetLevel: "medium",
+    phone: "+96899001234",
+    whatsapp: "+96899001234",
+    instagram: "omantraditions",
+    locationQuery: "Oman Traditions Muscat",
+    website: "https://omantraditions.om",
+    trusted: true,
+    subscriptionPlan: "pro",
+  },
+  {
+    id: "12",
+    name: "Istanbul Delights",
+    country: "Turkey",
+    city: "Istanbul",
+    category: "Specialty Gifts",
+    description: "Turkish delights and specialty gift items.",
+    recipientTags: ["friend", "parent", "partner"],
+    occasionTags: ["birthday", "anniversary"],
+    styleTags: ["handmade", "experience"],
+    budgetLevel: "medium",
+    phone: "+905321234567",
+    whatsapp: "+905321234567",
+    instagram: "istanbuldelights",
+    tiktok: "istanbuldelights",
+    locationQuery: "Istanbul Delights Grand Bazaar Turkey",
+    website: "https://istanbuldelights.com.tr",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "13",
+    name: "Turkish Tech Hub",
+    country: "Turkey",
+    city: "Ankara",
+    category: "Technology",
+    description: "Latest tech gadgets and electronic gifts.",
+    recipientTags: ["child", "friend", "colleague"],
+    occasionTags: ["birthday", "graduation"],
+    styleTags: ["techie"],
+    budgetLevel: "medium",
+    phone: "+905559876543",
+    whatsapp: "+905559876543",
+    instagram: "turkishtechhub",
+    locationQuery: "Turkish Tech Hub Ankara",
+    website: "https://turkishtechhub.com.tr",
+    trusted: false,
+    subscriptionPlan: "free",
+  },
+  {
+    id: "14",
+    name: "Cairo Treasures",
+    country: "Egypt",
+    city: "Cairo",
+    category: "Antiques & Gifts",
+    description: "Egyptian treasures and unique gift items.",
+    recipientTags: ["parent", "friend", "colleague"],
+    occasionTags: ["birthday", "anniversary", "wedding"],
+    styleTags: ["handmade", "luxury"],
+    budgetLevel: "medium",
+    phone: "+201001234567",
+    whatsapp: "+201001234567",
+    instagram: "cairotreasures",
+    locationQuery: "Cairo Treasures Khan El Khalili Egypt",
+    website: "https://cairotreasures.eg",
+    trusted: true,
+    subscriptionPlan: "pro",
+  },
+  {
+    id: "15",
+    name: "Paris Élégance",
+    country: "France",
+    city: "Paris",
+    category: "Luxury Gifts",
+    description: "French elegance in every gift selection.",
+    recipientTags: ["partner", "parent"],
+    occasionTags: ["anniversary", "wedding", "birthday"],
+    styleTags: ["luxury", "minimalist"],
+    budgetLevel: "high",
+    phone: "+33123456789",
+    whatsapp: "+33123456789",
+    instagram: "pariselegance",
+    tiktok: "pariselegancegifts",
+    locationQuery: "Paris Elegance Champs Elysees France",
+    website: "https://pariselegance.fr",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "16",
+    name: "Berlin Makers",
+    country: "Germany",
+    city: "Berlin",
+    category: "Handmade",
+    description: "German craftsmanship and handmade gifts.",
+    recipientTags: ["friend", "colleague", "parent"],
+    occasionTags: ["birthday", "graduation"],
+    styleTags: ["handmade", "minimalist"],
+    budgetLevel: "medium",
+    phone: "+4930123456",
+    whatsapp: "+4930123456",
+    instagram: "berlinmakers",
+    locationQuery: "Berlin Makers Germany",
+    website: "https://berlinmakers.de",
+    trusted: true,
+    subscriptionPlan: "pro",
+  },
+  {
+    id: "17",
+    name: "London Luxe",
+    country: "UK",
+    city: "London",
+    category: "Luxury Gifts",
+    description: "Premium British luxury gift experiences.",
+    recipientTags: ["partner", "parent", "colleague"],
+    occasionTags: ["anniversary", "wedding", "birthday"],
+    styleTags: ["luxury", "experience"],
+    budgetLevel: "high",
+    phone: "+442012345678",
+    whatsapp: "+442012345678",
+    instagram: "londonluxegifts",
+    tiktok: "londonluxe",
+    locationQuery: "London Luxe Mayfair UK",
+    website: "https://londonluxe.co.uk",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "18",
+    name: "NYC Gift Co",
+    country: "USA",
+    city: "New York",
+    category: "Gift Shop",
+    description: "Trendy gifts from the heart of New York.",
+    recipientTags: ["friend", "child", "partner"],
+    occasionTags: ["birthday", "graduation", "new_baby"],
+    styleTags: ["techie", "minimalist", "experience"],
+    budgetLevel: "medium",
+    phone: "+12125551234",
+    whatsapp: "+12125551234",
+    instagram: "nycgiftco",
+    tiktok: "nycgiftco",
+    locationQuery: "NYC Gift Co Manhattan USA",
+    website: "https://nycgiftco.com",
+    trusted: true,
+    subscriptionPlan: "premium",
+  },
+  {
+    id: "19",
+    name: "Budget Gifts JO",
     country: "Jordan",
-    categories: ["chocolate"],
-    recipientFit: ["partner", "friend", "family", "colleague", "child"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["fun", "elegant", "romantic"],
-    qualityScore: 7,
-    speedScore: 9,
-    friendBoost: 9,
-    address: "Amman, Khalda",
-    phone: "+962790000444",
-    website: "https://example.com/maison-cacao",
-    description: {
-      ar: "شوكولاتة فاخرة مع تقديم جاهز للإهداء.",
-      en: "Premium chocolates with gifting-ready presentation.",
-      fr: "Chocolats premium prêts à offrir.",
-      tr: "Hediye sunumuna hazır premium çikolatalar.",
-      es: "Chocolates premium listos para regalar.",
-    },
+    city: "Amman",
+    category: "Affordable Gifts",
+    description: "Quality gifts that don't break the bank.",
+    recipientTags: ["friend", "child", "colleague"],
+    occasionTags: ["birthday", "graduation"],
+    styleTags: ["minimalist"],
+    budgetLevel: "low",
+    phone: "+962795551234",
+    whatsapp: "+962795551234",
+    instagram: "budgetgiftsjo",
+    locationQuery: "Budget Gifts Downtown Amman Jordan",
+    website: "https://budgetgifts.jo",
+    trusted: false,
+    subscriptionPlan: "free",
   },
   {
-    id: "p5",
-    name: "Velour Perfumes",
-    country: "Jordan",
-    categories: ["perfume"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 9,
-    speedScore: 7,
-    friendBoost: 7,
-    address: "Amman, Boulevard",
-    phone: "+962790000555",
-    website: "https://example.com/velour-perfumes",
-    description: {
-      ar: "هدايا عطور مع تغليف فاخر.",
-      en: "Designer fragrance gifting with premium packaging.",
-      fr: "Parfums de créateur avec packaging premium.",
-      tr: "Premium ambalajlı tasarımcı parfümler.",
-      es: "Perfumes de diseñador con empaque premium.",
-    },
+    id: "20",
+    name: "Dubai Experience Hub",
+    country: "UAE",
+    city: "Dubai",
+    category: "Experiences",
+    description: "Adventure and luxury experiences in Dubai.",
+    recipientTags: ["partner", "friend"],
+    occasionTags: ["anniversary", "birthday"],
+    styleTags: ["experience", "luxury"],
+    budgetLevel: "high",
+    phone: "+971504445566",
+    whatsapp: "+971504445566",
+    instagram: "dubaiexperiencehub",
+    tiktok: "dubaiexphub",
+    locationQuery: "Dubai Experience Hub UAE",
+    website: "https://dubaiexperiencehub.ae",
+    trusted: true,
+    subscriptionPlan: "premium",
   },
-  {
-    id: "p6",
-    name: "Curated Box Studio",
-    country: "Jordan",
-    categories: ["giftbox"],
-    recipientFit: ["partner", "friend", "family", "colleague", "child"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["fun", "elegant"],
-    qualityScore: 6,
-    speedScore: 8,
-    friendBoost: 9,
-    address: "Amman, Gardens",
-    phone: "+962790000666",
-    website: "https://example.com/curated-box-studio",
-    description: {
-      ar: "صناديق هدايا مرنة لفئات متعددة.",
-      en: "Flexible gift box options for many recipient types.",
-      fr: "Coffrets cadeaux flexibles pour plusieurs profils.",
-      tr: "Birçok alıcı tipi için esnek hediye kutuları.",
-      es: "Cajas de regalo flexibles para varios perfiles.",
-    },
-  },
-  {
-    id: "p7",
-    name: "Golden Table",
-    country: "United Arab Emirates",
-    categories: ["dining"],
-    recipientFit: ["partner", "friend", "family", "colleague"],
-    occasionFit: ["birthday", "anniversary", "celebration", "thankyou"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 10,
-    speedScore: 6,
-    friendBoost: 8,
-    address: "Dubai, Downtown",
-    phone: "+971500000111",
-    website: "https://example.com/golden-table",
-    description: {
-      ar: "تجربة عشاء فاخرة مصممة لهدية لا تُنسى.",
-      en: "Luxury dining experience designed for memorable gifting.",
-      fr: "Expérience gastronomique de luxe pour offrir.",
-      tr: "Unutulmaz hediye için lüks yemek deneyimi.",
-      es: "Experiencia gastronómica de lujo para regalar.",
-    },
-  },
-  {
-    id: "p8",
-    name: "Rose Atelier",
-    country: "United Arab Emirates",
-    categories: ["flowers"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 9,
-    speedScore: 8,
-    friendBoost: 8,
-    address: "Dubai, Jumeirah",
-    phone: "+971500000222",
-    website: "https://example.com/rose-atelier",
-    description: {
-      ar: "هدايا زهور راقية مع تقديم فاخر.",
-      en: "High-end floral gifting with premium presentation.",
-      fr: "Fleurs premium avec belle présentation.",
-      tr: "Premium sunumlu üst düzey çiçek hediyeleri.",
-      es: "Regalos florales de alto nivel.",
-    },
-  },
-  {
-    id: "p9",
-    name: "Silk Spa House",
-    country: "United Arab Emirates",
-    categories: ["spa"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "luxury"],
-    qualityScore: 9,
-    speedScore: 5,
-    friendBoost: 7,
-    address: "Dubai, Marina",
-    phone: "+971500000333",
-    website: "https://example.com/silk-spa-house",
-    description: {
-      ar: "هدايا سبا فاخرة مع تجربة راقية.",
-      en: "Premium spa gifting with luxurious customer experience.",
-      fr: "Spa premium avec expérience luxueuse.",
-      tr: "Lüks deneyim sunan premium spa.",
-      es: "Spa premium con experiencia lujosa.",
-    },
-  },
-  {
-    id: "p10",
-    name: "Luna Fragrance",
-    country: "United Arab Emirates",
-    categories: ["perfume"],
-    recipientFit: ["partner", "friend", "family"],
-    occasionFit: ["birthday", "anniversary", "celebration"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 10,
-    speedScore: 7,
-    friendBoost: 7,
-    address: "Dubai, City Walk",
-    phone: "+971500000444",
-    website: "https://example.com/luna-fragrance",
-    description: {
-      ar: "دار عطور فاخرة مع تقديم مناسب للهدايا.",
-      en: "Luxury perfume house with gift-worthy presentation.",
-    },
-  },
-  {
-    id: "j1",
-    name: "Fakhreldin Restaurant",
-    country: "Jordan",
-    categories: ["dining"],
-    recipientFit: ["partner", "friend", "family", "colleague"],
-    occasionFit: ["birthday", "anniversary", "celebration", "thankyou"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic", "luxury"],
-    qualityScore: 9,
-    speedScore: 6,
-    friendBoost: 8,
-    address: "Amman, Jabal Amman",
-    phone: "+96264651555",
-    website: "https://fakhreldinrestaurant.com",
-    description: {
-      ar: "مطعم شرقي فاخر مناسب لتجارب العشاء الراقية والهدايا المميزة.",
-      en: "Luxury oriental restaurant ideal for premium dining gifts.",
-    },
-  },
-  {
-    id: "j2",
-    name: "Sufra Restaurant",
-    country: "Jordan",
-    categories: ["dining"],
-    recipientFit: ["partner", "friend", "family", "colleague"],
-    occasionFit: ["birthday", "anniversary", "celebration", "thankyou"],
-    budgetFit: ["medium", "high"],
-    styleFit: ["elegant", "romantic"],
-    qualityScore: 8,
-    speedScore: 7,
-    friendBoost: 7,
-    address: "Amman, Rainbow Street",
-    phone: "+96264614688",
-    website: "https://sufrarestaurant.com",
-    description: {
-      ar: "تجربة طعام أردنية تراثية بأجواء راقية ومناسبة للهدايا.",
-      en: "Authentic Jordanian dining experience in an elegant atmosphere.",
-    },
-  },
-  {
-    id: "j3",
-    name: "Vivel Patisserie",
-    country: "Jordan",
-    categories: ["chocolate"],
-    recipientFit: ["partner", "friend", "family", "colleague", "child"],
-    occasionFit: ["birthday", "thankyou", "celebration"],
-    budgetFit: ["low", "medium"],
-    styleFit: ["fun", "elegant", "romantic"],
-    qualityScore: 8,
-    speedScore: 8,
-    friendBoost: 8,
-    address: "Amman, Abdali",
-    phone: "+96265666660",
-    website: "https://vivel.me",
-    description: {
-      ar: "حلويات أوروبية فاخرة وتغليف أنيق مناسب للهدايا.",
-      en: "Premium European patisserie with elegant gift-ready presentation.",
-    },
-  },
+{
+  id: "kids-zone-jo",
+  name: "Kids Fun Zone",
+  country: "Jordan",
+  city: "Amman",
+  category: "Experience",
+  description: "Indoor playground & birthday party packages for kids",
+  recipientTags: ["child"],
+  occasionTags: ["birthday"],
+  styleTags: ["fun", "experience"],
+  budgetLevel: "medium",
+  phone: "+962790000000",
+  whatsapp: "+962790000000",
+  instagram: "kidszone.jo",
+  locationQuery: "kids play area amman",
+  trusted: true,
+  subscriptionPlan: "premium"
+},
+{
+  id: "elite-1",
+  name: "Elite Luxury",
+  country: "Jordan",
+  city: "Amman",
+  category: "Luxury Gifts",
+  description: "Premium luxury gift store in Amman.",
+  recipientTags: ["partner", "friend"],
+  occasionTags: ["birthday", "anniversary"],
+  styleTags: ["luxury"],
+  budgetLevel: "high",
+  phone: "+962700000000",
+  whatsapp: "+962700000000",
+  instagram: "elite.luxury",
+  tiktok: "elite.luxury",
+  locationQuery: "Luxury Gifts Amman Jordan",
+  website: "https://google.com",
+  trusted: true,
+  subscriptionPlan: "premium",
+},
+{
+  id: "online-1",
+  name: "Global Gift Store",
+  country: "Global",
+  city: "Online",
+  category: "Luxury Gifts",
+  description: "Online curated gifts worldwide.",
+  recipientTags: ["partner", "friend", "parent", "colleague"],
+  occasionTags: ["birthday", "anniversary", "wedding", "graduation"],
+  styleTags: ["luxury", "minimalist"],
+  budgetLevel: "medium",
+  phone: "",
+  whatsapp: "",
+  instagram: "globalgiftstore",
+  tiktok: "",
+  locationQuery: "Online Gift Store",
+  website: "https://google.com",
+  trusted: true,
+  subscriptionPlan: "premium",
+  isOnline: true,
+},
 ];
 
-/* =========================
-   Helpers
-========================= */
-function scoreConcept(
-  concept: GiftConcept,
-  recipient: RecipientKey,
-  occasion: OccasionKey,
-  budget: BudgetKey,
-  style: StyleKey
-) {
-  let score = concept.baseScore;
-  if (concept.recipientFit.includes(recipient)) score += 30;
-  if (concept.occasionFit.includes(occasion)) score += 25;
-  if (concept.budgetFit.includes(budget)) score += 20;
-  if (concept.styleFit.includes(style)) score += 25;
-  return score;
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
+    </svg>
+  );
 }
 
-function scoreProvider(
-  provider: Provider,
-  recipient: RecipientKey,
-  occasion: OccasionKey,
-  budget: BudgetKey,
-  style: StyleKey
-) {
-  let score = 0;
-  if (provider.recipientFit.includes(recipient)) score += 24;
-  if (provider.occasionFit.includes(occasion)) score += 22;
-  if (provider.budgetFit.includes(budget)) score += 18;
-  if (provider.styleFit.includes(style)) score += 18;
-  score += provider.qualityScore * 2;
-  score += provider.speedScore;
-  if (recipient === "friend") score += provider.friendBoost;
-  return score;
-}
-
-function clampScore(n: number) {
-  return Math.max(60, Math.min(98, Math.round(n)));
-}
-
-function buildGiftReason(
-  lang: Lang,
-  recipient: RecipientKey,
-  occasion: OccasionKey,
-  budget: BudgetKey,
-  style: StyleKey
-) {
-  const t = UI[lang];
-  if (lang === "ar") {
-    return `هذه الهدية مناسبة لـ ${t.recipients[recipient]} في ${t.occasions[occasion]} ضمن ميزانية ${t.budgets[budget]} وبنمط ${t.styles[style]}.`;
-  }
-  if (lang === "fr") {
-    return `Ce cadeau convient bien à ${t.recipients[recipient].toLowerCase()} pour ${t.occasions[occasion].toLowerCase()} avec un budget ${t.budgets[budget].toLowerCase()} et un style ${t.styles[style].toLowerCase()}.`;
-  }
-  if (lang === "tr") {
-    return `${t.recipients[recipient]} için ${t.occasions[occasion].toLowerCase()} bağlamında, ${t.budgets[budget].toLowerCase()} bütçe ve ${t.styles[style].toLowerCase()} stil için güçlü bir seçim.`;
-  }
-  if (lang === "es") {
-    return `Este regalo encaja bien para ${t.recipients[recipient].toLowerCase()} en ${t.occasions[occasion].toLowerCase()} con presupuesto ${t.budgets[budget].toLowerCase()} y estilo ${t.styles[style].toLowerCase()}.`;
-  }
-  return `This gift fits a ${t.recipients[recipient].toLowerCase()} for ${t.occasions[occasion].toLowerCase()} with a ${t.budgets[budget].toLowerCase()} budget and a ${t.styles[style].toLowerCase()} style.`;
-}
-
-function providerSignal(lang: Lang, p: Provider) {
-  const premium = p.qualityScore >= 9;
-  const fast = p.speedScore >= 8;
-
-  if (lang === "ar") {
-    if (premium && fast) return "فاخر وسريع";
-    if (premium) return "تقديم فاخر";
-    if (fast) return "جاهزية سريعة";
-    return "خيار متوازن";
-  }
-  if (lang === "fr") {
-    if (premium && fast) return "Premium et rapide";
-    if (premium) return "Présentation premium";
-    if (fast) return "Rapide";
-    return "Équilibré";
-  }
-  if (lang === "tr") {
-    if (premium && fast) return "Premium ve hızlı";
-    if (premium) return "Premium sunum";
-    if (fast) return "Hızlı";
-    return "Dengeli";
-  }
-  if (lang === "es") {
-    if (premium && fast) return "Premium y rápido";
-    if (premium) return "Presentación premium";
-    if (fast) return "Rápido";
-    return "Equilibrado";
-  }
-
-  if (premium && fast) return "Premium and fast";
-  if (premium) return "Premium presentation";
-  if (fast) return "Fast local availability";
-  return "Balanced option";
-}
-
-function buildResults(params: {
-  lang: Lang;
-  country: string;
-  recipient: RecipientKey;
-  occasion: OccasionKey;
-  budget: BudgetKey;
-  style: StyleKey;
-}): GiftResult[] {
-  const { lang, country, recipient, occasion, budget, style } = params;
-
-  const countryProviders = PROVIDERS.filter((p) => p.country === country);
-  if (countryProviders.length === 0) return [];
-
-  const rankedConcepts = GIFT_CONCEPTS.map((concept) => ({
-    concept,
-    score: scoreConcept(concept, recipient, occasion, budget, style),
-  }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
-
-  return rankedConcepts
-    .map(({ concept, score: conceptScore }) => {
-      const matchingProviders = countryProviders
-        .filter((p) => p.categories.includes(concept.category))
-        .filter((p) => p.budgetFit.includes(budget))
-        .map((p) => {
-          const score = clampScore(
-            conceptScore * 0.4 +
-              scoreProvider(p, recipient, occasion, budget, style) * 0.6
-          );
-
-          return {
-            id: p.id,
-            name: p.name,
-            address: p.address,
-            phone: p.phone,
-            website: p.website,
-            score,
-            signal: providerSignal(lang, p),
-            description: p.description[lang] ?? p.description.en ?? "",
-          };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
-
-      return {
-        id: concept.id,
-        title: concept.titles[lang],
-        reason: buildGiftReason(lang, recipient, occasion, budget, style),
-        providers: matchingProviders,
-      };
-    })
-    .filter((r) => r.providers.length > 0);
-}
-
-/* =========================
-   Component
-========================= */
-function Countdown60() {
-  const [time, setTime] = useState(60);
+const DiscoverButtonTimer = () => {
+  const [timeLeft, setTimeLeft] = useState(60);
 
   useEffect(() => {
+    if (timeLeft <= 0) return;
     const timer = setInterval(() => {
-      setTime((prev) => (prev <= 1 ? 60 : prev - 1));
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft]);
 
-  return <span>{time}</span>;
+  const percentage = (timeLeft / 60) * 100;
+
+  const getColor = () => {
+    if (timeLeft > 30) return "#22c55e";
+    if (timeLeft > 10) return "#eab308";
+    return "#ef4444";
+  };
+
+  return (
+    <div className="flex justify-center mt-6">
+      <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-slate-950/70 border border-white/5 shadow-inner">
+        <svg className="absolute inset-0 w-full h-full -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r="38"
+            stroke="currentColor"
+            strokeWidth="3"
+            fill="transparent"
+            className="text-white/10"
+          />
+          <motion.circle
+            cx="48"
+            cy="48"
+            r="38"
+            stroke={getColor()}
+            strokeWidth="4"
+            strokeLinecap="round"
+            fill="transparent"
+            strokeDasharray="238.6"
+            animate={{ strokeDashoffset: 238.6 - (238.6 * percentage) / 100 }}
+            transition={{ duration: 0.5 }}
+          />
+        </svg>
+
+        <div className="text-3xl font-black text-white">{timeLeft}s</div>
+      </div>
+    </div>
+  );
+};
+function buildWhy(concept: any, answers: any) {
+  const reasons: string[] = [];
+
+  if (answers.emotion === "care") {
+    reasons.push("Supports a warm and caring emotional intention");
+  }
+
+  if (answers.emotion === "love") {
+    reasons.push("Aligned with a romantic connection");
+  }
+
+  if (answers.emotion === "surprise") {
+    reasons.push("Designed to create a surprise effect");
+  }
+
+  if (answers.recipient === "partner") {
+    reasons.push("Highly suitable for partner relationships");
+  }
+
+  if (answers.recipient === "friend") {
+    reasons.push("Fits well for friendly gifting");
+  }
+
+  if (answers.occasion === "birthday") {
+    reasons.push("Perfect for birthday occasions");
+  }
+
+  if (answers.occasion === "anniversary") {
+    reasons.push("Great match for anniversary moments");
+  }
+
+  if (concept.budget === answers.budget) {
+    reasons.push("Matches your selected budget");
+  }
+
+  if (concept.vibe?.includes(answers.style)) {
+    reasons.push("Aligned with your preferred style");
+  }
+
+  return reasons;
 }
-
 export default function GiftMindPage() {
-  const [lang, setLang] = useState<Lang>("en");
+  const [step, setStep] = useState<Step>("landing");
   const [country, setCountry] = useState("Jordan");
-  const [step, setStep] = useState<Step>("setup");
+  const [language, setLanguage] = useState<Language>("en");
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Answers>({
+    recipient: "",
+    occasion: "",
+    budget: "",
+    style: "",
+     emotion: "", 
+  });
+  const [mode, setMode] = useState<"normal" | "alternative">("normal");
+  const [fallbackMessage, setFallbackMessage] = useState("");
+  const [notification, setNotification] = useState("");
+const t = translations[language] ?? translations.en!;
+ const isRTL = language === "ar";
 
-  const [recipient, setRecipient] = useState<RecipientKey | null>(null);
-  const [occasion, setOccasion] = useState<OccasionKey | null>(null);
-  const [budget, setBudget] = useState<BudgetKey | null>(null);
-  const [style, setStyle] = useState<StyleKey | null>(null);
+  useEffect(() => {
+    if (!notification) return;
+    const timer = window.setTimeout(() => setNotification(""), 2500);
+    return () => window.clearTimeout(timer);
+  }, [notification]);
+const questions = [
+  {
+    key: "recipient" as const,
+    title: t.questions.recipient,
+    options: [
+      { key: "partner" as RecipientKey, label: t.options.recipient.partner },
+      { key: "parent" as RecipientKey, label: t.options.recipient.parent },
+      { key: "friend" as RecipientKey, label: t.options.recipient.friend },
+      { key: "colleague" as RecipientKey, label: t.options.recipient.colleague },
+      { key: "child" as RecipientKey, label: t.options.recipient.child },
+    ],
+  },
+  {
+    key: "occasion" as const,
+    title: t.questions.occasion,
+    options: [
+      { key: "birthday" as OccasionKey, label: t.options.occasion.birthday },
+      { key: "anniversary" as OccasionKey, label: t.options.occasion.anniversary },
+      { key: "wedding" as OccasionKey, label: t.options.occasion.wedding },
+      { key: "graduation" as OccasionKey, label: t.options.occasion.graduation },
+      { key: "new_baby" as OccasionKey, label: t.options.occasion.new_baby },
+    ],
+  },
+  {
+    key: "budget" as const,
+    title: t.questions.budget,
+    options: [
+      { key: "low" as BudgetLevel, label: t.options.budget.low },
+      { key: "medium" as BudgetLevel, label: t.options.budget.medium },
+      { key: "high" as BudgetLevel, label: t.options.budget.high },
+    ],
+  },
+  {
+    key: "style" as const,
+    title: t.questions.style,
+    options: [
+      { key: "minimalist" as StyleKey, label: t.options.style.minimalist },
+      { key: "luxury" as StyleKey, label: t.options.style.luxury },
+      { key: "handmade" as StyleKey, label: t.options.style.handmade },
+      { key: "techie" as StyleKey, label: t.options.style.techie },
+      { key: "experience" as StyleKey, label: t.options.style.experience },
+    ],
+  },
+  {
+    key: "emotion" as const,
+    title:
+      language === "ar"
+        ? "ما هو الشعور الذي تريد إيصاله؟"
+        : "What feeling do you want this gift to express?",
+    options: [
+      { key: "love" as EmotionKey, label: language === "ar" ? "حب" : "Love" },
+      { key: "care" as EmotionKey, label: language === "ar" ? "اهتمام" : "Care" },
+      { key: "appreciation" as EmotionKey, label: language === "ar" ? "تقدير" : "Appreciation" },
+      { key: "surprise" as EmotionKey, label: language === "ar" ? "مفاجأة" : "Surprise" },
+      { key: "support" as EmotionKey, label: language === "ar" ? "دعم" : "Support" },
+      { key: "celebration" as EmotionKey, label: language === "ar" ? "احتفال" : "Celebration" },
+      { key: "nostalgia" as EmotionKey, label: language === "ar" ? "ذكرى" : "Nostalgia" },
+      { key: "respect" as EmotionKey, label: language === "ar" ? "احترام" : "Respect" },
+    ],
+  },
+];
+const topGiftConcepts = useMemo(() => {
+  if (
+    !answers.recipient ||
+    !answers.occasion ||
+    !answers.budget ||
+    !answers.emotion
+  ) {
+    return [];
+  }
 
-  const t = UI[lang];
-  const isRtl = lang === "ar";
+  const recipientMap = {
+    partner: "partner",
+    parent: "family",
+    friend: "friend",
+    colleague: "friend",
+    child: "child",
+  } as const;
 
-  const hasProviders = useMemo(
-    () => PROVIDERS.some((p) => p.country === country),
-    [country]
+  const occasionMap = {
+    birthday: "birthday",
+    anniversary: "anniversary",
+    wedding: "anniversary",
+    graduation: "celebration",
+    new_baby: "celebration",
+  } as const;
+
+  const emotionToVibeMap = {
+    comfort: "warm",
+    appreciation: "elegant",
+    love: "romantic",
+    fun: "fun",
+    celebration: "casual",
+  } as const;
+
+  const emotionToGoalMap = {
+    comfort: "support",
+    appreciation: "appreciate",
+    love: "romance",
+    fun: "celebrate",
+    celebration: "celebrate",
+  } as const;
+
+  const results = selectTopGifts({
+    
+    recipient:
+      recipientMap[answers.recipient as keyof typeof recipientMap] ?? "friend",
+    occasion:
+      occasionMap[answers.occasion as keyof typeof occasionMap] ?? "birthday",
+    budget: answers.budget as "low" | "medium" | "high",
+    vibe:
+      emotionToVibeMap[answers.emotion as keyof typeof emotionToVibeMap] ??
+      "casual",
+    goal:
+      emotionToGoalMap[answers.emotion as keyof typeof emotionToGoalMap] ??
+      "celebrate",
+  });
+
+  if (!Array.isArray(results)) return [];
+// 🛡 Social Risk Filter
+const safeResults = results.filter((concept) => {
+  // ❌ Romantic / Emotional gifts for colleague
+  if (
+    answers.recipient === "colleague" &&
+    concept.tags.includes("emotional")
+  ) {
+    return false;
+  }
+
+  // ❌ Luxury overkill for child
+  if (
+    answers.recipient === "child" &&
+    concept.category === "luxury"
+  ) {
+    return false;
+  }
+
+  // ❌ Too personal for formal relationships
+  if (
+    answers.recipient === "colleague" &&
+    concept.tags.includes("memory")
+  ) {
+    return false;
+  }
+
+  return true;
+});
+ const boostedResults = safeResults.map((concept) => {
+  let bonus = 0;
+
+  // 🔥 Emotion Boost (موجود عندك)
+  if (answers.emotion === "love" && concept.category === "luxury") {
+    bonus += 20;
+  }
+
+  if (answers.emotion === "fun" && concept.category === "experience") {
+    bonus += 20;
+  }
+
+  if (answers.emotion === "appreciation") {
+    bonus += 15;
+  }
+
+  if (answers.emotion === "celebration") {
+    bonus += 15;
+  }
+
+  // 🧠 NEW: Smart Reason Generator
+  const reason = `${
+    answers.recipient === "partner"
+      ? "This feels personal and meaningful"
+      : answers.recipient === "friend"
+      ? "Perfect for a fun and memorable moment"
+      : answers.recipient === "parent"
+      ? "Shows care and appreciation"
+      : "A safe and thoughtful choice"
+  } for a ${
+    answers.occasion
+  }, especially when you want to express ${
+    answers.emotion
+  }.`;
+
+  return {
+    ...concept,
+    score: concept.score + bonus,
+    reason, // 👈 هذا المهم
+  };
+});
+
+  const uniqueResults = boostedResults.filter(
+    (concept, index, self) =>
+      index === self.findIndex((item) => item.id === concept.id)
   );
 
-  const results = useMemo(() => {
-    if (!recipient || !occasion || !budget || !style) return [];
-    return buildResults({ lang, country, recipient, occasion, budget, style });
-  }, [lang, country, recipient, occasion, budget, style]);
+ const sortedResults = uniqueResults.sort((a, b) => b.score - a.score);
 
-  const progress =
-    step === "setup"
-      ? 0
-      : step === "recipient"
-      ? 25
-      : step === "occasion"
-      ? 50
-      : step === "budget"
-      ? 75
-      : step === "style"
-      ? 90
-      : 100;
+if (mode === "alternative") {
+  return sortedResults.slice(1, 4);
+}
 
-  const resetAll = () => {
-    setStep("setup");
-    setRecipient(null);
-    setOccasion(null);
-    setBudget(null);
-    setStyle(null);
+return sortedResults.slice(0, 3);
+}, [answers, mode]);
+  const primaryConcept = topGiftConcepts[0];
+  const alternativeConcepts = topGiftConcepts.slice(1, 3);
+const onlineSearchQuery = `
+${answers.occasion} ${answers.style} gift for ${answers.recipient}
+`.replace(/\s+/g, " ").trim();
+
+const getOnlineLink = () => {
+  const q = encodeURIComponent(onlineSearchQuery);
+
+  if (country === "UAE") {
+    return `https://www.amazon.ae/s?k=${q}`;
+  }
+
+  if (country === "Saudi Arabia") {
+    return `https://www.amazon.sa/s?k=${q}`;
+  }
+
+  if (country === "Jordan") {
+    return `https://www.google.com/search?tbm=shop&q=${q}`;
+  }
+
+  if (country === "France" || country === "Germany") {
+    return `https://www.etsy.com/search?q=${q}`;
+  }
+
+  return `https://www.google.com/search?q=${q}`;
+};
+const topMerchants = useMemo(() => {
+  if (!topGiftConcepts.length) return [];
+
+  const getMerchantCategory = (conceptCategory: string) => {
+    if (conceptCategory === "symbolic") return "Artisan Crafts";
+    if (conceptCategory === "experience") return "Experience";
+    if (conceptCategory === "mixed") return "Luxury Gifts";
+    if (conceptCategory === "Luxury Gifts") return "Luxury Gifts";
+    return "General";
   };
 
-  const openExternal = (url: string) => {
-    if (!url) return;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
+  for (const concept of topGiftConcepts) {
+    const selectedGift = {
+      category: getMerchantCategory(concept.category),
+    };
 
-  const handleAskFriend = async () => {
-    const shareText =
-      lang === "ar"
-        ? `شوف GiftMind وساعدني أختار هدية مناسبة في ${country}`
-        : `Check GiftMind and help me choose a suitable gift in ${country}`;
+    const categoryMatchedMerchants = merchants.filter(
+      (m) =>
+        (!country || m.country === country) &&
+        (!selectedGift.category || m.category === selectedGift.category)
+    );
 
-    const shareUrl = window.location.href;
+    const conceptMerchants = categoryMatchedMerchants
+      .filter(
+        (m) => !answers.recipient || m.recipientTags.includes(answers.recipient)
+      )
+      .filter(
+        (m) => !answers.occasion || m.occasionTags.includes(answers.occasion)
+      )
+      .map((merchant) => {
+        let score = 0;
 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "GiftMind",
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      }
+        if (
+          answers.recipient &&
+          merchant.recipientTags.includes(answers.recipient)
+        ) {
+          score += 30;
+        }
 
-      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-      alert(lang === "ar" ? "تم نسخ الرابط للمشاركة" : "Link copied for sharing");
-    } catch (error) {
-      console.error("Share failed:", error);
+        if (
+          answers.occasion &&
+          merchant.occasionTags.includes(answers.occasion)
+        ) {
+          score += 25;
+        }
+
+        if (merchant.budgetLevel === answers.budget) {
+          score += 25;
+        }
+
+        if (merchant.trusted) {
+          score += 5;
+        }
+
+        if (merchant.category === selectedGift.category) {
+          score += 20;
+        }
+
+        return {
+          ...merchant,
+          score,
+          matchedConceptId: concept.id,
+          matchedConceptTitle: concept.title,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+
+    if (conceptMerchants.length > 0) {
+      return conceptMerchants;
+    }
+  }
+
+  return [];
+}, [answers, country, topGiftConcepts]);
+ const startDiscovery = () => {
+  setQuestionIndex(0);
+  setAnswers({
+    recipient: "",
+    occasion: "",
+    budget: "",
+    style: "",
+    emotion: "",
+  });
+  setStep("quiz");
+};
+
+ const handleAnswer = (
+  key: keyof Answers,
+  value: RecipientKey | OccasionKey | BudgetLevel | StyleKey | string,
+) => {
+  setAnswers((prev) => ({ ...prev, [key]: value }));
+  if (questionIndex < questions.length - 1) {
+    setQuestionIndex((prev) => prev + 1);
+  } else {
+    setStep("results");
+  }
+};
+
+  const handleBack = () => {
+    if (step === "results") {
+      setStep("quiz");
+      setQuestionIndex(questions.length - 1);
+      return;
+    }
+
+    if (questionIndex > 0) {
+      setQuestionIndex((prev) => prev - 1);
+    } else {
+      setStep("landing");
     }
   };
 
-  const recipientOptions: { key: RecipientKey; label: string }[] = [
-    { key: "partner", label: t.recipients.partner },
-    { key: "friend", label: t.recipients.friend },
-    { key: "family", label: t.recipients.family },
-    { key: "colleague", label: t.recipients.colleague },
-    { key: "child", label: t.recipients.child },
-  ];
+  const handleShare = async () => {
+    const params = new URLSearchParams({
+      c: country,
+      l: language,
+      r: answers.recipient,
+      o: answers.occasion,
+      b: answers.budget,
+      s: answers.style,
+    });
 
-  const occasionOptions: { key: OccasionKey; label: string }[] = [
-    { key: "birthday", label: t.occasions.birthday },
-    { key: "anniversary", label: t.occasions.anniversary },
-    { key: "thankyou", label: t.occasions.thankyou },
-    { key: "celebration", label: t.occasions.celebration },
-  ];
+    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 
-  const budgetOptions: { key: BudgetKey; label: string }[] = [
-    { key: "low", label: t.budgets.low },
-    { key: "medium", label: t.budgets.medium },
-    { key: "high", label: t.budgets.high },
-  ];
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: t.shareTitle,
+          text: t.shareText,
+          url,
+        });
+        return;
+      } catch {
+        return;
+      }
+    }
 
-  const styleOptions: { key: StyleKey; label: string }[] = [
-    { key: "elegant", label: t.styles.elegant },
-    { key: "romantic", label: t.styles.romantic },
-    { key: "fun", label: t.styles.fun },
-    { key: "luxury", label: t.styles.luxury },
-  ];
+    await navigator.clipboard.writeText(url);
+    setNotification(t.copied);
+  };
+
+  const startOver = () => {
+    setStep("landing");
+    setQuestionIndex(0);
+  setAnswers({
+  recipient: "",
+  occasion: "",
+  budget: "",
+  style: "",
+  emotion: "",
+});
+  };
 
   return (
-    <main
-      dir={isRtl ? "rtl" : "ltr"}
-      className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_18%,rgba(0,196,255,0.18),transparent_22%),radial-gradient(circle_at_86%_16%,rgba(168,85,247,0.18),transparent_24%),linear-gradient(135deg,#08111f_0%,#0c1f38_45%,#132d4b_100%)] text-white"
+    <main dir={isRTL ? "rtl" : "ltr"} className="min-h-screen bg-[#071827] text-white">
+      {notification && (
+        <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-cyan-500 px-4 py-2 font-medium text-slate-900 shadow-lg shadow-cyan-500/20">
+          {notification}
+        </div>
+      )}
+
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(37,99,235,0.16),_transparent_40%)]" />
+      </div>
+
+      <div className="relative mx-auto max-w-md px-4 py-10">
+        <header className="mb-8 text-center">
+          <div className="mb-5 flex justify-center gap-2 overflow-x-auto">
+            {languages.map((item) => (
+              <button
+                key={item.code}
+                onClick={() => setLanguage(item.code)}
+                className={`rounded-full border px-3 py-1 text-[10px] uppercase transition-all ${
+                  language === item.code
+                    ? "border-white bg-white text-black"
+                    : "border-white/10 text-slate-500"
+                }`}
+              >
+                {item.code.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.18)]">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm font-semibold">{t.badge}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-3 flex justify-center">
+            <Sparkles className="h-14 w-14 text-cyan-400" />
+          </div>
+
+          <h1 className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-6xl font-black tracking-tight text-transparent">
+            {t.title}
+          </h1>
+          <p className="mt-3 text-xl text-slate-300">{t.subtitle}</p>
+        </header>
+
+        {step === "landing" && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
+                {t.selectCountry}
+              </label>
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-4 text-white outline-none"
+              >
+                {countries.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <DiscoverButtonTimer />
+
+            <button
+              onClick={startDiscovery}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-4 font-bold text-white transition-all hover:scale-[1.01]"
+            >
+              {t.start}
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </section>
+        )}
+
+        {step === "quiz" && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="mb-4 flex items-center justify-between">
+              <button
+                onClick={handleBack}
+                className="rounded-xl border border-slate-700 bg-slate-900/70 p-3 text-cyan-400 transition-all hover:bg-cyan-500 hover:text-black"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <div className="text-sm text-slate-400">
+                {questionIndex + 1} / {questions.length}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
+              <h2 className="mb-5 text-xl font-bold text-white">
+                {questions[questionIndex].title}
+              </h2>
+
+              <div className="grid gap-3">
+                {questions[questionIndex].options.map((option) => (
+                  <button
+                    key={option.key}
+                    onClick={() =>
+                      handleAnswer(
+                        questions[questionIndex].key,
+                       option.key as RecipientKey | OccasionKey | BudgetLevel | StyleKey | string
+                      )
+                    }
+                    className="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-4 text-start text-white transition-all hover:border-cyan-500/40 hover:bg-slate-800"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {step === "results" && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="mb-6 flex items-center justify-between">
+              <button
+                onClick={handleBack}
+                className="rounded-xl border border-slate-700 bg-slate-900/70 p-3 text-cyan-400 transition-all hover:bg-cyan-500 hover:text-black"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <div className="text-sm font-semibold text-cyan-400">{t.topMatches}</div>
+
+              <button
+                onClick={startOver}
+                className="rounded-xl border border-slate-700 bg-slate-900/70 p-3 text-cyan-400 transition-all hover:bg-cyan-500 hover:text-black"
+              >
+                <RefreshCcw className="h-5 w-5" />
+              </button>
+            </div>
+{primaryConcept && (
+  <div className="mb-6 space-y-3">
+    <div
+      className="rounded-2xl border border-cyan-500/40 bg-cyan-500/5 p-4"
     >
-      <div className="mx-auto max-w-7xl px-4 py-4 md:px-8 md:py-8">
-        <div className="overflow-hidden rounded-[30px] border border-white/12 bg-white/[0.05] shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-          <div className="grid min-h-[84vh] lg:grid-cols-[1.02fr_0.98fr]">
-            <section className="border-b border-white/10 p-4 md:p-8 lg:border-b-0 lg:border-r lg:p-10">
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-xs uppercase tracking-[0.35em] text-[#d7c79e]">
-                  {t.appName}
-                </div>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-lg font-bold text-white">
+            {primaryConcept.title}
+          </div>
 
-                <div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-white/65">
-                  <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                  <span>Decision Engine</span>
-                </div>
-              </div>
+          <div className="mt-1 text-xs uppercase tracking-wider text-cyan-400">
+            {primaryConcept.category}
+          </div>
+        </div>
 
-              <div className="mt-6">
-                <div className="mx-auto max-w-md">
-                  <div className="relative overflow-hidden rounded-[28px] border border-white/12 bg-[#0a1730] shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
-                    <img
-                      src="/hero-giftmind.jpg"
-                      alt="GiftMind Hero"
-                      className="block h-auto w-full"
-                    />
+        <div className="rounded-xl bg-slate-950/60 px-3 py-2 text-center">
+          <div className="text-lg font-black text-cyan-400">
+            {primaryConcept.score}
+          </div>
 
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#071827]/20 via-transparent to-[#071827]/45" />
-
-                    <div className="absolute left-1/2 top-4 -translate-x-1/2">
-                      <img
-                        src="/logo.jpg"
-                        alt="GiftMind"
-                        className="w-16 rounded-[16px] border border-white/10 bg-white/90 p-1 shadow-xl md:w-20"
-                      />
-                    </div>
-
-                    <div className="absolute left-1/2 top-[32%] -translate-x-1/2 rounded-full border border-cyan-300/30 bg-[#061120]/55 px-6 py-3 shadow-[0_0_35px_rgba(34,211,238,0.22)] backdrop-blur-md">
-                      <div className="bg-gradient-to-r from-cyan-300 via-white to-violet-300 bg-clip-text text-center text-4xl font-extrabold text-transparent md:text-5xl">
-                        <Countdown60 />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mx-auto mt-6 max-w-xl text-center">
-                  <h1
-                    className={`font-bold leading-[1.05] ${
-                      isRtl ? "text-3xl md:text-5xl" : "text-3xl md:text-6xl"
-                    }`}
-                  >
-                    {t.heroTitle}
-                  </h1>
-
-                  <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-white/75 md:text-lg md:leading-8">
-                    {t.heroSubtitle}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs md:text-sm">
-                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-white/85">
-                      Emotion
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-white/85">
-                      Relationship
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-white/85">
-                      Occasion
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-white/85">
-                      Budget
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 h-2 w-full overflow-hidden rounded-full bg-white/8">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-300 to-violet-300 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <div className="mt-8 grid gap-3 md:grid-cols-3">
-                <InfoCard title={t.smoothFlow} text={t.smoothFlowText} />
-                <InfoCard title={t.giftFirst} text={t.giftFirstText} />
-                <InfoCard title={t.top3} text={t.top3Text} />
-              </div>
-
-              <div className="mt-6 rounded-[24px] border border-white/10 bg-black/10 p-5">
-                <div className="text-xs uppercase tracking-[0.25em] text-white/45">
-                  {t.availability}
-                </div>
-                <div
-                  className={`mt-3 text-sm leading-6 ${
-                    hasProviders ? "text-emerald-200" : "text-amber-200"
-                  }`}
-                >
-                  {hasProviders ? t.availabilityYes : t.availabilityNo}
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-[24px] border border-white/10 bg-black/10 p-5">
-                <div className="text-xs uppercase tracking-[0.25em] text-white/45">
-                  {t.socialTitle}
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openExternal(
-                        "https://www.instagram.com/giftmind2026?igsh=MXhucjdneHBibm02bQ=="
-                      )
-                    }
-                    className="rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition hover:bg-white/[0.10]"
-                  >
-                    Instagram
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openExternal(
-                        "https://www.tiktok.com/@salimpeygemberli?_r=1&_t=ZS-94WsRGneA9X"
-                      )
-                    }
-                    className="rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm text-white/85 transition hover:bg-white/[0.10]"
-                  >
-                    TikTok
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <section className="p-5 md:p-8 lg:p-10">
-              {step === "setup" && (
-                <div className="mx-auto max-w-xl">
-                  <div className="mb-5 text-sm uppercase tracking-[0.3em] text-white/45">
-                    {t.setupTitle}
-                  </div>
-
-                  <div className="space-y-5">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-white/82">
-                        {t.country}
-                      </label>
-                      <div className="rounded-[22px] border border-white/10 bg-white/95 px-4 py-1 shadow-xl">
-                        <select
-                          value={country}
-                          onChange={(e) => setCountry(e.target.value)}
-                          className="h-14 w-full bg-transparent text-[15px] font-medium text-[#0d1d2f] outline-none"
-                        >
-                          {COUNTRIES.map((item) => (
-                            <option key={item} value={item}>
-                              {item}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-white/82">
-                        {t.language}
-                      </label>
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                        {(["ar", "en", "fr", "tr", "es"] as Lang[]).map((item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => setLang(item)}
-                            className={`rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${
-                              lang === item
-                                ? "border-transparent bg-gradient-to-br from-white to-[#d8f0ff] text-[#0d1b2f] shadow-[0_10px_28px_rgba(173,221,255,0.28)]"
-                                : "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.10]"
-                            }`}
-                          >
-                            {item.toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setStep("recipient")}
-                      className="w-full rounded-[22px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-5 py-4 text-base font-bold text-[#0b1b2b] shadow-[0_16px_40px_rgba(116,205,255,0.30)] transition duration-200 hover:-translate-y-0.5"
-                    >
-                      {t.continue}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {step === "recipient" && (
-                <AutoQuestionBlock
-                  title={t.recipient}
-                  backText={t.back}
-                  onBack={() => setStep("setup")}
-                  options={recipientOptions}
-                  selected={recipient}
-                  onSelect={(value) => {
-                    setRecipient(value as RecipientKey);
-                    setStep("occasion");
-                  }}
-                />
-              )}
-
-              {step === "occasion" && (
-                <AutoQuestionBlock
-                  title={t.occasion}
-                  backText={t.back}
-                  onBack={() => setStep("recipient")}
-                  options={occasionOptions}
-                  selected={occasion}
-                  onSelect={(value) => {
-                    setOccasion(value as OccasionKey);
-                    setStep("budget");
-                  }}
-                />
-              )}
-
-              {step === "budget" && (
-                <AutoQuestionBlock
-                  title={t.budget}
-                  backText={t.back}
-                  onBack={() => setStep("occasion")}
-                  options={budgetOptions}
-                  selected={budget}
-                  onSelect={(value) => {
-                    setBudget(value as BudgetKey);
-                    setStep("style");
-                  }}
-                />
-              )}
-
-              {step === "style" && (
-                <AutoQuestionBlock
-                  title={t.style}
-                  backText={t.back}
-                  onBack={() => setStep("budget")}
-                  options={styleOptions}
-                  selected={style}
-                  onSelect={(value) => {
-                    setStyle(value as StyleKey);
-                    setStep("results");
-                  }}
-                />
-              )}
-
-              {step === "results" && (
-                <div className="mx-auto max-w-2xl px-3 sm:px-0">
-                  <div className="text-sm uppercase tracking-[0.3em] text-white/45">
-                    Results
-                  </div>
-
-                  <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
-                    {t.resultsTitle}
-                  </h2>
-                  <p className="mt-3 text-white/72">{t.resultsSubtitle}</p>
-
-                  <div className="mt-4 rounded-[22px] border border-white/10 bg-black/10 px-4 py-3 text-sm text-white/78">
-                    {t.selectedCountry}:{" "}
-                    <span className="font-semibold text-white">{country}</span>
-                  </div>
-
-                  {!hasProviders || results.length === 0 ? (
-                    <div className="mt-6 rounded-[24px] border border-amber-300/20 bg-amber-300/10 p-5">
-                      <div className="text-lg font-bold text-amber-100">
-                        {t.noProvidersTitle}
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-white/80">
-                        {t.noProvidersText}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-6 space-y-4">
-                      {results.map((gift, index) => (
-                        <div
-                          key={gift.id}
-                          className={`rounded-[24px] border p-4 shadow-xl ${
-                            index === 0
-                              ? "border-cyan-200/30 bg-gradient-to-br from-white/[0.16] to-cyan-200/[0.08]"
-                              : "border-white/10 bg-white/[0.06]"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="text-sm uppercase tracking-[0.18em] text-white/45">
-                                {t.suggestedGift}
-                              </div>
-                              <div className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">
-                                {gift.title}
-                              </div>
-                            </div>
-
-                            {index === 0 && (
-                              <div className="rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 px-3 py-1 text-xs font-bold text-[#0c1b2c]">
-                                Best Match
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="mt-4 rounded-[18px] border border-white/10 bg-black/10 p-3">
-                            <div className="text-xs uppercase tracking-[0.15em] text-white/45">
-                              {t.whyGift}
-                            </div>
-                            <p className="mt-2 text-sm leading-5 text-white/80">
-                              {gift.reason}
-                            </p>
-                          </div>
-
-                          <div className="mt-4">
-                            <div className="text-sm font-semibold text-white/90">
-                              {t.availablePlaces}
-                            </div>
-
-                            <div className="mt-3 space-y-3">
-                              {gift.providers.map((provider) => (
-                                <div
-                                  key={provider.id}
-                                  className="rounded-[18px] border border-white/10 bg-white/[0.05] p-3"
-                                >
-                                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                    <div>
-                                      <div className="text-base font-bold sm:text-lg">
-                                        {provider.name}
-                                      </div>
-                                      <div className="mt-1 text-sm text-white/70">
-                                        {provider.address}
-                                      </div>
-                                      <div className="mt-1 text-sm text-white/70">
-                                        {provider.phone}
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2 sm:max-w-[220px] sm:justify-end">
-                                      <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-xs text-white/85">
-                                        {provider.signal}
-                                      </div>
-                                      <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-sm font-semibold">
-                                        {provider.score}% Score
-                                      </div>
-                                      <div className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-xs text-white/90">
-                                        {t.fromGiftMind}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <p className="mt-2 text-sm leading-5 text-white/78">
-                                    {provider.description}
-                                  </p>
-
-                                  <div className="mt-4 grid grid-cols-2 gap-2">
-                                    <a
-                                      href={`tel:${provider.phone}`}
-                                      className="rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-3 text-center text-sm font-medium text-white"
-                                    >
-                                      {t.call}
-                                    </a>
-
-                                    <a
-                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                        `${provider.name} ${provider.address}`
-                                      )}`}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="rounded-[16px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-3 text-center text-sm font-bold text-[#0b1b2b]"
-                                    >
-                                      {t.go}
-                                    </a>
-
-                                    <a
-                                      href={`https://wa.me/${provider.phone.replace(/\D/g, "")}`}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="col-span-2 rounded-[16px] border border-white/12 bg-white/[0.06] px-4 py-3 text-center text-sm font-medium text-white"
-                                    >
-                                      WhatsApp
-                                    </a>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={() => setStep("style")}
-                      className="flex-1 rounded-[20px] border border-white/12 bg-white/[0.06] px-4 py-3 font-medium text-white"
-                    >
-                      {t.back}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={resetAll}
-                      className="flex-1 rounded-[20px] bg-gradient-to-r from-[#67e8f9] via-[#8ec5ff] to-[#d5b7ff] px-4 py-3 font-bold text-[#0b1b2b]"
-                    >
-                      {t.newSearch}
-                    </button>
-                  </div>
-
-                  <div className="mt-8 text-center">
-                    <button
-                      type="button"
-                      onClick={handleAskFriend}
-                      className="rounded-full border border-white/12 bg-white/[0.06] px-5 py-3 text-sm text-white/90 transition hover:bg-white/[0.10]"
-                    >
-                      {t.askFriend}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
+          <div className="text-[10px] uppercase tracking-widest text-slate-400">
+            AI
           </div>
         </div>
       </div>
-    </main>
-  );
-}
 
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="rounded-[24px] border border-white/10 bg-black/10 p-5">
-      <div className="text-xs uppercase tracking-[0.25em] text-white/45">
-        {title}
+      <div className="mt-4 text-sm leading-7 text-white/80">
+        {primaryConcept.reason}
       </div>
-      <div className="mt-3 text-sm leading-6 text-white/80">{text}</div>
     </div>
-  );
-}
+  </div>
+)}
+  
 
-function AutoQuestionBlock<T extends string>({
-  title,
-  options,
-  selected,
-  onSelect,
-  onBack,
-  backText,
-}: {
-  title: string;
-  options: { key: T; label: string }[];
-  selected: T | null;
-  onSelect: (key: T) => void;
-  onBack: () => void;
-  backText: string;
-}) {
-  return (
-    <div className="mx-auto max-w-xl">
-      <h2 className="text-3xl font-bold leading-tight md:text-4xl">{title}</h2>
 
-      <div className="mt-6 grid gap-3">
-        {options.map((option) => {
-          const active = selected === option.key;
+<div className="space-y-5">
+ {topMerchants.length === 0 && (
+  <div className="rounded-3xl border border-slate-800 bg-slate-900/40 px-5 py-10 text-center text-slate-300 space-y-4">
+    
+    <div className="text-base font-semibold text-white">
+      وجدنا فكرة مناسبة 🎯
+    </div>
 
-          return (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => onSelect(option.key)}
-              className={`w-full rounded-[22px] border px-4 py-4 text-start transition duration-200 ${
-                active
-                  ? "border-transparent bg-gradient-to-br from-[#ffffff] to-[#dbeeff] text-[#0c1b2c] shadow-[0_14px_34px_rgba(148,204,255,0.30)]"
-                  : "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.10]"
-              }`}
+    <div className="text-sm text-slate-400">
+      لكن لا يوجد تاجر محلي مطابق حالياً
+    </div>
+
+    <div className="text-sm text-slate-400">
+      يمكنك تنفيذ هذه الفكرة عبر:
+    </div>
+
+    <div className="flex flex-wrap justify-center gap-2 mt-2">
+   <button
+  onClick={() => {
+    if (topGiftConcepts.length <= 1) {
+      setFallbackMessage("لا توجد بدائل قريبة أكثر حالياً");
+      return;
+    }
+    setMode("alternative");
+    setFallbackMessage("");
+  }}
+  className="px-3 py-1 rounded-full bg-slate-800 text-xs"
+>
+  بدائل قريبة
+</button>
+    <button
+  onClick={() => window.open(getOnlineLink(), "_blank")}
+  className="px-3 py-1 rounded-full bg-slate-800 text-xs"
+>
+  متاجر أونلاين
+</button>
+      <span className="px-3 py-1 rounded-full bg-slate-800 text-xs">
+        تجارب وخدمات
+      </span>
+    </div>
+{fallbackMessage && (
+  <div className="mt-3 text-xs text-slate-400 text-center">
+    {fallbackMessage}
+  </div>
+)}
+  </div>
+)}
+ {topMerchants.map((merchant, index) => {
+    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      merchant.locationQuery,
+    )}`;
+
+    const cleanInstagram = merchant.instagram?.replace(/^@/, "").trim();
+    const cleanWebsite = merchant.website?.trim();
+const merchantUrl = cleanWebsite
+  ? cleanWebsite.startsWith("http")
+    ? cleanWebsite
+    : `https://${cleanWebsite}`
+  : cleanInstagram
+    ? `https://instagram.com/${cleanInstagram}`
+   
+
+    return (
+      <div
+        key={merchant.id}
+        className={`relative overflow-hidden rounded-[2rem] border ${
+          index === 0
+            ? "border-cyan-500/40 bg-slate-900/80 shadow-[0_0_30px_rgba(6,182,212,0.12)]"
+            : "border-slate-700 bg-slate-900/60"
+        } p-5`}
+      >
+        {index === 0 && (
+          <div className="absolute start-4 top-0 -translate-y-1/2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-1 text-xs font-bold text-white">
+            {t.bestMatch}
+          </div>
+        )}
+
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-2xl font-black">{merchant.name}</h3>
+
+            <p className="mt-2 text-sm text-slate-300">
+              {language === "ar"
+                ? "لماذا هذا الاختيار؟ مناسب تماماً للمناسبة والأسلوب والميزانية المختارة"
+                : "Why this fits: Perfect for the selected occasion, style, and budget"}
+            </p>
+
+            <div className="mt-1 flex items-center gap-1 text-sm text-slate-400">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {merchant.city}, {merchant.country}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-slate-950/60 px-4 py-3 text-center">
+            <div className="text-3xl font-black text-cyan-400">{merchant.score}%</div>
+            <div className="text-xs uppercase tracking-widest text-slate-500">
+              {t.match}
+            </div>
+          </div>
+        </div>
+
+        <p className="mb-4 text-base leading-relaxed text-slate-300">
+          {merchant.description}
+        </p>
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-slate-700/70 px-3 py-1 text-sm text-slate-200">
+            {merchant.category}
+          </span>
+
+          {merchant.trusted && (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-sm text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" />
+              {t.trusted}
+            </span>
+          )}
+
+          {merchant.subscriptionPlan === "premium" && (
+            <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-sm text-amber-400">
+              <Crown className="h-4 w-4" />
+              {t.premium}
+            </span>
+          )}
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-cyan-400">
+            <Sparkles className="h-4 w-4" />
+            {t.whyFits}
+          </div>
+          <p className="text-sm text-slate-200">{merchant.reason}</p>
+        </div>
+
+        <div className="mb-2 text-xs font-semibold text-cyan-400">
+          Customer from GiftMind
+        </div>
+
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          <a
+            href={`tel:${merchant.phone}`}
+            className="rounded-xl bg-slate-800/70 p-3 text-slate-300 transition-colors hover:text-cyan-400"
+          >
+            <Phone className="h-5 w-5" />
+          </a>
+
+          {merchant.whatsapp && (
+            <a
+              href={`https://wa.me/${merchant.whatsapp.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-slate-800/70 p-3 text-slate-300 transition-colors hover:text-cyan-400"
             >
-              <div className="text-base font-semibold">{option.label}</div>
-            </button>
-          );
-        })}
-      </div>
+              <MessageCircle className="h-5 w-5" />
+            </a>
+          )}
 
-      <div className="mt-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-full rounded-[20px] border border-white/12 bg-white/[0.06] px-4 py-3 font-medium text-white sm:w-auto sm:min-w-[180px]"
-        >
-          {backText}
-        </button>
+          <a
+            href={mapLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-xl bg-slate-800/70 p-3 text-slate-300 transition-colors hover:text-cyan-400"
+          >
+            <MapPin className="h-5 w-5" />
+          </a>
+
+          {merchant.instagram && (
+            <a
+              href={`https://instagram.com/${merchant.instagram.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-slate-800/70 p-3 text-slate-300 transition-colors hover:text-cyan-400"
+            >
+              <Instagram className="h-5 w-5" />
+            </a>
+          )}
+
+          {merchant.tiktok && (
+            <a
+              href={`https://tiktok.com/@${merchant.tiktok.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-slate-800/70 p-3 text-slate-300 transition-colors hover:text-cyan-400"
+            >
+              <TikTokIcon className="h-5 w-5" />
+            </a>
+          )}
+        </div>
+
+        <div className="grid gap-2">
+          <button
+            onClick={handleShare}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-800 px-4 py-4 text-sm font-bold text-white transition-all hover:bg-slate-700"
+          >
+            <Share2 className="h-4 w-4" />
+            {t.share}
+          </button>
+
+        {merchantUrl ? (
+  <a
+  href={merchantUrl ? (merchantUrl.startsWith("http") ? merchantUrl : `https://${merchantUrl}`) : "#"}
+    target="_blank"
+    rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-3 font-semibold text-white"
+            >
+              <Globe className="h-4 w-4" />
+              {t.visit}
+              <ExternalLink className="h-4 w-4" />
+              
+            </a>
+          ) : (
+            <button
+              disabled
+              className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-3 font-semibold text-slate-400"
+            >
+              <Globe className="h-4 w-4" />
+              {t.visit}
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    );
+  })}
+</div>
+            <button
+              onClick={startOver}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-4 text-sm font-bold text-slate-300 transition-all hover:text-white"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              {t.restart}
+            </button>
+          </section>
+        )}
+
+        <footer className="mt-14 text-center opacity-30">
+          <p className="text-[11px] font-bold uppercase tracking-wide">{t.footer}</p>
+        </footer>
+      </div>
+    </main>
   );
 }
