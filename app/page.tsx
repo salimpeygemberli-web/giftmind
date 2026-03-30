@@ -1112,12 +1112,19 @@ export default function Page() {
   const lang = state.language;
   const isRTL = lang === "AR";
 
-  const results = useMemo(() => {
-    return state.planType === "gift"
-      ? getGiftResults(state.gift, state.country)
-      : getExperienceResults(state.experience, state.country);
-  }, [state]);
-
+const results = useMemo(() => {
+  return state.planType === "gift"
+    ? getGiftResults(
+        state.gift,
+        state.country,
+        state.language as Language
+      )
+    : getExperienceResults(
+        state.experience,
+        state.country,
+        state.language as Language
+      );
+}, [state]);
   const giftRecipients = [
     { value: "partner", label: { EN: "Partner", AR: "شريك/حبيب", FR: "Partenaire", TR: "Partner", ES: "Pareja" } },
     { value: "friend", label: { EN: "Friend", AR: "صديق", FR: "Ami", TR: "Arkadaş", ES: "Amigo" } },
