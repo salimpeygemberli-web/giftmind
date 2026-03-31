@@ -681,7 +681,7 @@ function getGiftResults(
     return [
    
     {
-  type: "symbolic",
+ type: "symbolic" as const,
   title: getResultTitle(lang, "symbolic", gift.recipient),
   reason: getResultReason(lang, "symbolic", gift.recipient),
   why: getResultReason(lang, "symbolic", gift.recipient),
@@ -689,7 +689,7 @@ function getGiftResults(
   merchant: base.symbolic,
 },
 {
-  type: "experience",
+  type: "experience" as const,
   title: getResultTitle(lang, "experience", gift.recipient),
   reason: getResultReason(lang, "experience", gift.recipient),
   why: getResultReason(lang, "experience", gift.recipient),
@@ -697,7 +697,7 @@ function getGiftResults(
   merchant: base.experience,
 },
 {
-  type: "tangible",
+   type: "tangible" as const,
   title: getResultTitle(lang, "tangible", gift.recipient),
   reason: getResultReason(lang, "tangible", gift.recipient),
   why: getResultReason(lang, "tangible", gift.recipient),
@@ -1870,16 +1870,16 @@ Country: ${state.country}`;
               </article>
             ))}
 
-            {/* Online outside cards */}
-            <div className="rounded-[24px] border border-yellow-500/20 bg-yellow-500/5 p-4 text-center">
-              <div className="text-sm text-white/65">{t.onlineSub[lang]}</div>
-              <button
-                onClick={() => openLink("https://example.com/online-option")}
-                className="mt-3 w-full rounded-xl border border-yellow-500/40 px-4 py-3 text-sm font-semibold text-yellow-300"
-              >
-                {t.onlineOption[lang]}
-              </button>
-            </div>
+{/* Online outside cards */}
+<div className="rounded-[24px] border border-yellow-500/20 bg-yellow-500/5 p-4">
+  <div className="text-sm text-white/65">{t.onlineSub[lang]}</div>
+  <button
+    onClick={() => openLink("https://example.com/online-option")}
+    className="mt-3 w-full rounded-xl border border-yellow-500/40 px-4 py-3 text-sm font-semibold text-yellow-300"
+  >
+    {t.onlineOption[lang]}
+  </button>
+</div>
 
             <div className="flex flex-wrap gap-3">
               <button
