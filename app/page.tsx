@@ -947,7 +947,7 @@ function getExperienceResults(
   exp: ExperienceAnswers,
   country: Country,
   lang: Language
-) {
+): ResultCard[] {
   const merchants = {
     restaurant: merchantBy(country, "restaurant"),
     cafe: merchantBy(country, "cafe"),
