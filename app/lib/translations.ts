@@ -75,74 +75,74 @@ export const translations = {
   },
 
   AR: {
-    results: "أفضل 3 اختيارات",
-    bestMatch: "الأفضل",
-    why: "لماذا هذا مناسب",
-    visitMerchant: "زيارة المتجر",
-    askFriend: "اسأل صديقًا",
-    restart: "إعادة البدء",
-    onlineOption: "خيار أونلاين",
-    alternativeOption: "خيار بديل",
-    noProviders: "لا يوجد مزودون محليون متاحون في هذه الدولة حاليًا",
-    yellowPages: "Yellow Pages",
-    trusted: "GiftMind Trusted",
-    customerFromGiftMind: "عميل من GiftMind",
-    score: "درجة التطابق",
-    symbolic: "رمزي",
+    results: "أفضل 3 اختيارات لك",
+    bestMatch: "الأقرب لك",
+    why: "لماذا هذا الخيار مناسب؟",
+    visitMerchant: "عرض المتجر",
+    askFriend: "اسأل شخص تثق به",
+    restart: "ابدأ من جديد",
+    onlineOption: "خيار عبر الإنترنت",
+    alternativeOption: "خيار آخر",
+    noProviders: "لا يوجد مزودون محليون حاليًا في هذه الدولة",
+    yellowPages: "دليل التجار",
+    trusted: "موثّق من GiftMind",
+    customerFromGiftMind: "عميل قادم من GiftMind",
+    score: "نسبة التوافق",
+    symbolic: "رمزية",
     experience: "تجربة",
-    tangible: "ملموس",
+    tangible: "ملموسة",
 
     resultTitles: {
       symbolic: {
-        partner: "رمز يحمل معنى لعلاقتكما",
-        friend: "هدية شخصية مبنية على الذكريات",
-        parent: "هدية تقدير واحترام",
-        colleague: "لفتة مهنية راقية",
-        child: "تذكار يحمل معنى جميلًا",
-        default: "هدية رمزية ذات معنى",
+        partner: "رمز يعكس عمق العلاقة بينكما",
+        friend: "هدية تحمل ذكريات مشتركة",
+        parent: "لفتة تعبّر عن الامتنان والتقدير",
+        colleague: "إشارة ذكية تعبّر عن الاحترام",
+        child: "تذكار يحمل معنى خاص",
+        default: "هدية رمزية تحمل معنى حقيقي",
       },
       experience: {
-        partner: "تجربة رومانسية مشتركة",
+        partner: "تجربة رومانسية تخلق لحظة لا تُنسى",
         friend: "تجربة ممتعة تعيشانها معًا",
-        parent: "تجربة هادئة يستحقونها فعلًا",
+        parent: "لحظة هدوء يستحقونها بصدق",
         colleague: "تجربة راقية خارج الروتين",
-        child: "تجربة مليئة بالفرح والحماس",
-        default: "هدية على شكل تجربة مميزة",
+        child: "تجربة مليئة بالحماس والمرح",
+        default: "تجربة تترك أثرًا حقيقيًا",
       },
       tangible: {
-        partner: "هدية راقية يمكن الاحتفاظ بها",
+        partner: "هدية راقية تجمع بين القيمة والمشاعر",
         friend: "هدية عملية بطابع شخصي",
-        parent: "هدية مفيدة لراحة الحياة اليومية",
-        colleague: "هدية عملية أنيقة وذكية",
-        child: "هدية ممتعة يمكنه الاستفادة منها فعلًا",
-        default: "هدية ملموسة قوية",
+        parent: "هدية مريحة تدعم حياتهم اليومية",
+        colleague: "هدية أنيقة وعملية في نفس الوقت",
+        child: "هدية ممتعة تُستخدم وتُفرح",
+        default: "هدية ملموسة واضحة القيمة",
       },
     },
 
     resultReasons: {
       symbolic: {
-        partner: "هذا الاختيار يعبّر عن عمق المشاعر وليس فقط عن القيمة.",
-        friend: "يشعر بأنه شخصي ويعكس قصتكم المشتركة.",
-        parent: "يظهر الامتنان بطريقة محترمة وصادقة.",
-        colleague: "يبقى مناسبًا مهنيًا ومع ذلك يحمل اهتمامًا واضحًا.",
-        child: "يصنع ذكرى ذات معنى وليس مجرد لحظة عابرة.",
-        default: "هذا الخيار يحمل نية ومعنى عاطفيًا واضحًا.",
+        partner: "يعبر عن مشاعر عميقة بدون مبالغة في الشكل أو السعر.",
+        friend: "يعكس العلاقة بينكما بطريقة شخصية وغير تقليدية.",
+        parent: "يوصل التقدير والاحترام بشكل صادق وواضح.",
+        colleague: "يبقى مناسبًا مهنيًا مع لمسة إنسانية ذكية.",
+        child: "يصنع ذكرى تبقى، وليس مجرد لحظة عابرة.",
+        default: "يحمل معنى حقيقي يتجاوز مجرد الهدية.",
       },
       experience: {
-        partner: "يخلق لحظة مشتركة بدل أن يكون مجرد شيء مادي.",
-        friend: "يحوّل الهدية إلى ذكرى يمكن لكما الاستمتاع بها.",
-        parent: "يمنح راحة وهدوءًا وشعورًا بالتقدير.",
-        colleague: "يبدو مختلفًا وراقيًا وآمنًا اجتماعيًا.",
-        child: "يمنح الحماس والفرح وتفاعلًا حقيقيًا.",
-        default: "هذا الخيار يصنع ذكرى وشعورًا يدومان.",
+        partner: "بدل شيء مادي، تعطي لحظة مشتركة تُحس وتُتذكر.",
+        friend: "تحول الهدية إلى تجربة ممتعة بينكما.",
+        parent: "تمنحهم راحة حقيقية وشعورًا بالتقدير.",
+        colleague: "تجربة مختلفة تعطي انطباعًا راقيًا وآمنًا.",
+        child: "تخلق فرحًا حقيقيًا وتفاعلًا مباشرًا.",
+        default: "تخلق ذكرى تبقى أطول من أي هدية مادية.",
       },
       tangible: {
-        partner: "يجمع بين المشاعر والجودة والفائدة اليومية.",
-        friend: "ممتع وعملي وسهل التقدير.",
-        parent: "يدعم الحياة اليومية مع بقاء الهدية مدروسة.",
-        colleague: "أنيق وعملي وسهل التقبّل.",
-        child: "يعطي فرحًا مباشرًا وشيئًا حقيقيًا للاستخدام أو اللعب.",
-        default: "هذا الخيار عملي وواضح وسهل التقدير.",
+        partner: "يجمع بين الجودة والشعور، شيء يُستخدم ويُتذكر.",
+        friend: "عملي، ممتع، وسهل التقدير بدون تعقيد.",
+        parent: "مفيد في حياتهم اليومية مع لمسة اهتمام.",
+        colleague: "واضح، أنيق، وآمن في كل السياقات.",
+        child: "يعطي متعة فورية وشيء ملموس للاستمتاع.",
+        default: "خيار واضح وعملي وسهل التقدير.",
       },
     },
   },
@@ -367,28 +367,102 @@ export const translations = {
   },
 } as const;
 
+// ==========================
+// RESULT TITLE
+// ==========================
 export function getResultTitle(
   lang: Language,
   type: "symbolic" | "experience" | "tangible",
   recipient: string
 ) {
-  const safeRecipient = recipient as keyof typeof translations.EN.resultTitles.symbolic;
+  const safeRecipient =
+    recipient as keyof typeof translations.EN.resultTitles.symbolic;
+
   return (
     translations[lang]?.resultTitles?.[type]?.[safeRecipient] ||
     translations[lang]?.resultTitles?.[type]?.default ||
-    ""
+    translations.EN.resultTitles[type][safeRecipient] ||
+    translations.EN.resultTitles[type].default
   );
 }
 
+// ==========================
+// BASIC REASON
+// ==========================
 export function getResultReason(
   lang: Language,
   type: "symbolic" | "experience" | "tangible",
   recipient: string
 ) {
-  const safeRecipient = recipient as keyof typeof translations.EN.resultReasons.symbolic;
+  const safeRecipient =
+    recipient as keyof typeof translations.EN.resultReasons.symbolic;
+
   return (
     translations[lang]?.resultReasons?.[type]?.[safeRecipient] ||
     translations[lang]?.resultReasons?.[type]?.default ||
-    ""
+    translations.EN.resultReasons[type][safeRecipient] ||
+    translations.EN.resultReasons[type].default
   );
+}
+
+// ==========================
+// SAFE UI TRANSLATION
+// ==========================
+type TranslationKey = Exclude<
+  keyof typeof translations.EN,
+  "resultTitles" | "resultReasons"
+>;
+
+export function t(lang: Language, key: TranslationKey) {
+  return translations[lang][key] || translations.EN[key];
+}
+
+// ==========================
+// SMART REASON
+// ==========================
+export function getSmartReason(
+  lang: Language,
+  type: "symbolic" | "experience" | "tangible",
+  recipient: string,
+  budget: string,
+  occasion: string
+) {
+  const safeRecipient =
+    recipient as keyof typeof translations.EN.resultReasons.symbolic;
+
+  const base =
+    translations[lang]?.resultReasons?.[type]?.[safeRecipient] ||
+    translations[lang]?.resultReasons?.[type]?.default ||
+    translations.EN.resultReasons[type][safeRecipient] ||
+    translations.EN.resultReasons[type].default;
+
+  let extra = "";
+
+  if (lang === "AR") {
+    if (budget === "high") {
+      extra += " يعكس مستوى اهتمام واضح وجودة عالية.";
+    } else if (budget === "low") {
+      extra += " رغم بساطته، يحمل قيمة ومعنى جميل.";
+    }
+
+    if (occasion === "birthday") {
+      extra += " مناسب تمامًا لأجواء الاحتفال.";
+    } else if (occasion === "anniversary") {
+      extra += " يعزز الطابع العاطفي للمناسبة.";
+    }
+  } else {
+    if (budget === "high") {
+      extra += " It reflects clear effort and a higher-quality choice.";
+    } else if (budget === "low") {
+      extra += " Even with a simple budget, it still feels meaningful.";
+    }
+
+    if (occasion === "birthday") {
+      extra += " It fits the celebratory mood well.";
+    } else if (occasion === "anniversary") {
+      extra += " It strengthens the emotional tone of the occasion.";
+    }
+  }
+
+  return base + extra;
 }

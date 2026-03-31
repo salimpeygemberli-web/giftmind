@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { getResultTitle, getResultReason } from "./lib/translations";
+import { getResultTitle, getSmartReason } from "./lib/translations";
 import { type Language } from "./lib/types";
 // =========================
 // TYPES
@@ -683,24 +683,24 @@ function getGiftResults(
     {
  type: "symbolic" as const,
   title: getResultTitle(lang, "symbolic", gift.recipient),
-  reason: getResultReason(lang, "symbolic", gift.recipient),
-  why: getResultReason(lang, "symbolic", gift.recipient),
+reason: getSmartReason(lang, "symbolic", gift.recipient, gift.budget, gift.occasion),
+why: getSmartReason(lang, "symbolic", gift.recipient, gift.budget, gift.occasion),
   score: 96,
   merchant: base.symbolic,
 },
 {
   type: "experience" as const,
   title: getResultTitle(lang, "experience", gift.recipient),
-  reason: getResultReason(lang, "experience", gift.recipient),
-  why: getResultReason(lang, "experience", gift.recipient),
+ reason: getSmartReason(lang, "experience", gift.recipient, gift.budget, gift.occasion),
+why: getSmartReason(lang, "experience", gift.recipient, gift.budget, gift.occasion),
   score: 92,
   merchant: base.experience,
 },
 {
    type: "tangible" as const,
   title: getResultTitle(lang, "tangible", gift.recipient),
-  reason: getResultReason(lang, "tangible", gift.recipient),
-  why: getResultReason(lang, "tangible", gift.recipient),
+ reason: getSmartReason(lang, "tangible", gift.recipient, gift.budget, gift.occasion),
+why: getSmartReason(lang, "tangible", gift.recipient, gift.budget, gift.occasion),
   score: 88,
   merchant: base.tangible,
 }, 
@@ -954,151 +954,266 @@ function getExperienceResults(
     activity: merchantBy(country, "activity"),
   };
   if (exp.recipient === "friends" && exp.emotion === "fun") {
-    return [
-      {
-   
-  type: "symbolic",
-  title: getResultTitle(lang, "symbolic", exp.recipient),
-  reason: getResultReason(lang, "symbolic", exp.recipient),
-  why: getResultReason(lang, "symbolic", exp.recipient),
-  score: 86,
-  merchant: merchants.cafe,
-},
-{
-  type: "experience",
-  title: getResultTitle(lang, "experience", exp.recipient),
-  reason: getResultReason(lang, "experience", exp.recipient),
-  why: getResultReason(lang, "experience", exp.recipient),
-  score: 91,
-  merchant: merchants.activity,
-},
-{
-  type: "tangible",
-  title: getResultTitle(lang, "tangible", exp.recipient),
-  reason: getResultReason(lang, "tangible", exp.recipient),
-  why: getResultReason(lang, "tangible", exp.recipient),
-  score: 84,
-  merchant: merchants.restaurant,
-}, 
-    ];
-  }
-
-  if (exp.recipient === "family" && exp.emotion === "connection") {
-    return [
-      {
-        type: "restaurant",
-        title: "A Warm Family Dinner",
-        reason: "A setting that encourages conversation, comfort, and togetherness.",
-        why: "Family connection grows more through warmth than spectacle.",
-        score: 94,
-        merchant: merchants.restaurant,
-      },
-      {
-        type: "cafe",
-        title: "A Calm Shared Escape",
-        reason: "A simple outing where everyone can breathe and reconnect.",
-        why: "Families reconnect best in places that reduce pressure.",
-        score: 90,
-        merchant: merchants.cafe,
-      },
-      {
-       
-     type: "activity",
-title: getResultTitle(lang, "experience", exp.recipient),
-reason: getResultReason(lang, "experience", exp.recipient),
-why: getResultReason(lang, "experience", exp.recipient),
-score: 87,
-merchant: merchants.activity, 
-      },
-    ];
-  }
-
-  if (exp.recipient === "colleagues" && exp.emotion === "luxury") {
-    return [
-       {
-  type: "restaurant",
-  title: getResultTitle(lang, "symbolic", exp.recipient),
-  reason: getResultReason(lang, "symbolic", exp.recipient),
-  why: getResultReason(lang, "symbolic", exp.recipient),
-  score: 95,
-  merchant: merchants.restaurant,
-},
+  return [
     {
-  type: "cafe",
-  title: getResultTitle(lang, "experience", exp.recipient),
-  reason: getResultReason(lang, "experience", exp.recipient),
-  why: getResultReason(lang, "experience", exp.recipient),
-  score: 89,
-  merchant: merchants.cafe,
-},
-  {
-  type: "activity",
-  title: getResultTitle(lang, "tangible", exp.recipient),
-  reason: getResultReason(lang, "tangible", exp.recipient),
-  why: getResultReason(lang, "tangible", exp.recipient),
-  score: 86,
-  merchant: merchants.activity,
-},   
-    ];
-  }
+      type: "symbolic",
+      title: getResultTitle(lang, "symbolic", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 86,
+      merchant: merchants.cafe,
+    },
+    {
+      type: "experience",
+      title: getResultTitle(lang, "experience", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 91,
+      merchant: merchants.activity,
+    },
+    {
+      type: "tangible",
+      title: getResultTitle(lang, "tangible", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 84,
+      merchant: merchants.restaurant,
+    },
+  ];
+}
 
-  if (exp.emotion === "relax") {
-   return [
-  {
-    type: "cafe",
-    title: getResultTitle(lang, "symbolic", exp.recipient),
-    reason: getResultReason(lang, "symbolic", exp.recipient),
-    why: getResultReason(lang, "symbolic", exp.recipient),
-    score: 93,
-    merchant: merchants.cafe,
-  },
-  {
-    type: "restaurant",
-    title: getResultTitle(lang, "experience", exp.recipient),
-    reason: getResultReason(lang, "experience", exp.recipient),
-    why: getResultReason(lang, "experience", exp.recipient),
-    score: 89,
-    merchant: merchants.restaurant,
-  },
-  {
-    type: "activity",
-    title: getResultTitle(lang, "tangible", exp.recipient),
-    reason: getResultReason(lang, "tangible", exp.recipient),
-    why: getResultReason(lang, "tangible", exp.recipient),
-    score: 84,
-    merchant: merchants.activity,
-  },
-];
-      
-  
-  }
-
+if (exp.recipient === "family" && exp.emotion === "connection") {
   return [
     {
       type: "restaurant",
-      title: "A Balanced Group Dinner",
-      reason: "A shared dining moment that feels simple, easy, and safe.",
-      why: "A strong default experience gives people a reason to gather without overthinking.",
-      score: 87,
+      title: "A Warm Family Dinner",
+      reason: "A setting that encourages conversation, comfort, and togetherness.",
+      why: "Family connection grows more through warmth than spectacle.",
+      score: 94,
       merchant: merchants.restaurant,
     },
     {
       type: "cafe",
-      title: "A Relaxed Cafe Gathering",
-      reason: "A softer option for conversation and shared time.",
-      why: "Sometimes the right decision is a setting that lets the people carry the experience.",
-      score: 84,
+      title: "A Calm Shared Escape",
+      reason: "A simple outing where everyone can breathe and reconnect.",
+      why: "Families reconnect best in places that reduce pressure.",
+      score: 90,
       merchant: merchants.cafe,
     },
     {
       type: "activity",
-      title: "A Shared Group Activity",
-      reason: "A clear plan that turns the moment into something memorable.",
-      why: "Activities create energy when the group needs more than just a place.",
-      score: 82,
+      title: getResultTitle(lang, "experience", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 87,
       merchant: merchants.activity,
     },
   ];
+}
+
+if (exp.recipient === "colleagues" && exp.emotion === "luxury") {
+  return [
+    {
+      type: "restaurant",
+      title: getResultTitle(lang, "symbolic", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 95,
+      merchant: merchants.restaurant,
+    },
+    {
+      type: "cafe",
+      title: getResultTitle(lang, "experience", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 89,
+      merchant: merchants.cafe,
+    },
+    {
+      type: "activity",
+      title: getResultTitle(lang, "tangible", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 86,
+      merchant: merchants.activity,
+    },
+  ];
+}
+
+if (exp.emotion === "relax") {
+  return [
+    {
+      
+      type: "cafe",
+      title: getResultTitle(lang, "symbolic", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "symbolic",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 93,
+      merchant: merchants.cafe,
+    },
+    {
+      type: "restaurant",
+      title: getResultTitle(lang, "experience", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "experience",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 89,
+      merchant: merchants.restaurant,
+    },
+    {
+      type: "activity",
+      title: getResultTitle(lang, "tangible", exp.recipient),
+      reason: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      why: getSmartReason(
+        lang,
+        "tangible",
+        exp.recipient,
+        exp.budget,
+        exp.occasion
+      ),
+      score: 84,
+      merchant: merchants.activity,
+    },
+  ];
+}return [
+  {
+    type: "restaurant",
+    title: "Shared Experience",
+    reason: "A balanced option that fits many shared occasions.",
+    why: "It works well when you want something social and flexible.",
+    score: 88,
+    merchant: merchants.restaurant,
+  },
+  {
+    type: "cafe",
+    title: "Relaxed Outing",
+    reason: "A lighter option for connection without pressure.",
+    why: "It keeps the experience easy and comfortable.",
+    score: 84,
+    merchant: merchants.cafe,
+  },
+  {
+    type: "activity",
+    title: "Memorable Activity",
+    reason: "Adds energy and creates a shared memory.",
+    why: "Useful when you want interaction, not just a place.",
+    score: 82,
+    merchant: merchants.activity,
+  },
+];
 }
 
 // =========================
