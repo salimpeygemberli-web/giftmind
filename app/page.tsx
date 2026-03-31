@@ -1861,7 +1861,7 @@ Country: ${state.country}`;
                   </div>
 
                   <button
-                    onClick={() => shareResult(result)}
+               onClick={() => shareResult(result as ResultCard)}
                     className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold"
                   >
                     {t.askFriend[lang]}
