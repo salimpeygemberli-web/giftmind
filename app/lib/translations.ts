@@ -99,7 +99,7 @@ export const translations = {
         parent: "لفتة تعبّر عن الامتنان والتقدير",
         colleague: "إشارة ذكية تعبّر عن الاحترام",
         child: "تذكار يحمل معنى خاص",
-        default: "هدية رمزية تحمل معنى حقيقي",
+        default: "هدية تحمل معنى حقيقي",
       },
       experience: {
         partner: "تجربة رومانسية تخلق لحظة لا تُنسى",
@@ -107,7 +107,7 @@ export const translations = {
         parent: "لحظة هدوء يستحقونها بصدق",
         colleague: "تجربة راقية خارج الروتين",
         child: "تجربة مليئة بالحماس والمرح",
-        default: "تجربة تترك أثرًا حقيقيًا",
+       default: "تجربة تبقى في الذاكرة",
       },
       tangible: {
         partner: "هدية راقية تجمع بين القيمة والمشاعر",
@@ -115,7 +115,7 @@ export const translations = {
         parent: "هدية مريحة تدعم حياتهم اليومية",
         colleague: "هدية أنيقة وعملية في نفس الوقت",
         child: "هدية ممتعة تُستخدم وتُفرح",
-        default: "هدية ملموسة واضحة القيمة",
+        default: "هدية عملية وواضحة",
       },
     },
 
@@ -126,7 +126,7 @@ export const translations = {
         parent: "يوصل التقدير والاحترام بشكل صادق وواضح.",
         colleague: "يبقى مناسبًا مهنيًا مع لمسة إنسانية ذكية.",
         child: "يصنع ذكرى تبقى، وليس مجرد لحظة عابرة.",
-        default: "يحمل معنى حقيقي يتجاوز مجرد الهدية.",
+       default: "هدية تحمل معنى حقيقي",
       },
       experience: {
         partner: "بدل شيء مادي، تعطي لحظة مشتركة تُحس وتُتذكر.",
@@ -143,7 +143,19 @@ export const translations = {
         colleague: "واضح، أنيق، وآمن في كل السياقات.",
         child: "يعطي متعة فورية وشيء ملموس للاستمتاع.",
         default: "خيار واضح وعملي وسهل التقدير.",
-      },
+     },
+    resultWhy: {
+  symbolic: {
+    default: "تعطي انطباع قوي أنك اخترت بعناية، مو بشكل عشوائي.",
+  },
+  experience: {
+    default: "مناسبة إذا هدفك تقرّب العلاقة وتخلق ذكرى مشتركة.",
+  },
+  tangible: {
+    default: "مناسب لما تكون بدك شيء واضح بدون مخاطرة.",
+  },
+},
+
     },
   },
 
@@ -405,7 +417,14 @@ export function getResultReason(
   );
 }
 
-// ==========================
+export function getResultWhy(
+  lang: Language,
+  type: "symbolic" | "experience" | "tangible"
+) {
+  return translations[lang]?.why ?? translations.EN.why;
+}
+
+//==========================
 // SAFE UI TRANSLATION
 // ==========================
 type TranslationKey = Exclude<
@@ -427,6 +446,7 @@ export function getSmartReason(
   budget: string,
   occasion: string
 ) {
+  
   const safeRecipient =
     recipient as keyof typeof translations.EN.resultReasons.symbolic;
 

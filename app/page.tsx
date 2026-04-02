@@ -1,13 +1,21 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { getResultTitle, getSmartReason } from "./lib/translations";
+import {
+  getResultTitle,
+  getResultReason,
+  getResultWhy,
+  getSmartReason,
+} from "./lib/translations";
+
 import { type Language } from "./lib/types";
+
 // =========================
 // TYPES
 // =========================
 
 type Country =
+ 
   | "Jordan"
   | "UAE"
   | "Saudi Arabia"
@@ -20,7 +28,9 @@ type Country =
   | "France"
   | "Germany"
   | "UK"
-  | "USA";
+  | "USA"
+  | "Iraq"
+  | "Spain"; 
 
 type Step = "landing" | "mode" | "q1" | "q2" | "q3" | "q4" | "results" | "yellow";
 type PlanType = "gift" | "experience";
@@ -42,22 +52,23 @@ type Merchant = {
   category: string;
   country: Country;
   city: string;
-  phone: string;
+  phone?: string;
   website: string;
   instagram: string;
   tiktok: string;
   verified: boolean;
+  isOnline?: boolean;
 };
 
 type ResultCard = {
-  type: "symbolic" | "experience" | "tangible" | "restaurant" | "cafe" | "activity";
+  type: "symbolic" | "experience" | "tangible";
   title: string;
+  description?: string; // 🔥 هذا السطر مهم
   reason: string;
   why: string;
   score: number;
   merchant: Merchant;
 };
-
 type GiftAnswers = {
   recipient: GiftRecipient;
   childGender: ChildGender;
@@ -99,6 +110,8 @@ const COUNTRIES: Country[] = [
   "Germany",
   "UK",
   "USA",
+  "Iraq",
+  "Spain",
 ];
 
 const LANGUAGES: Language[] = ["EN", "AR", "FR", "TR", "ES"];
@@ -420,15 +433,19 @@ function dirFor(lang: Language) {
   return lang === "AR" ? "rtl" : "ltr";
 }
 
-function openLink(url: string) {
-  if (typeof window !== "undefined") {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+function fixUrl(url?: string) {
+  if (!url) return "";
+  const clean = url.trim();
+  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
+  return `https://${clean}`;
 }
 
-function openPhone(phone: string) {
+function openLink(url: string) {
+  const safeUrl = fixUrl(url);
+  if (!safeUrl) return;
+
   if (typeof window !== "undefined") {
-    window.location.href = `tel:${phone}`;
+    window.open(safeUrl, "_blank", "noopener,noreferrer");
   }
 }
 
@@ -448,7 +465,57 @@ async function askFriend(text: string) {
     alert("Copied");
   }
 }
+function getOnlineMerchant(
+  country: Country,
+  key: "gift" | "luxury" | "tech" | "restaurant" | "cafe" | "activity"
+): Merchant {
+  let website = "https://www.amazon.com/s?k=gift";
 
+  if (country === "UAE") {
+    website = "https://www.noon.com/uae-en/search?q=gift";
+  } else if (country === "Saudi Arabia") {
+    website = "https://www.noon.com/saudi-en/search?q=gift";
+  } else if (country === "Egypt") {
+    website = "https://www.noon.com/egypt-en/search?q=gift";
+  } else if (country === "Jordan") {
+    website = "https://www.amazon.ae/s?k=gift";
+  } else if (country === "USA") {
+    website = "https://www.amazon.com/s?k=gift";
+  } else if (country === "UK") {
+    website = "https://www.amazon.co.uk/s?k=gift";
+  } else if (country === "Germany") {
+    website = "https://www.amazon.de/s?k=geschenk";
+  } else if (country === "France") {
+    website = "https://www.amazon.fr/s?k=cadeau";
+  } else if (country === "Spain") {
+    website = "https://www.amazon.es/s?k=regalo";
+  } else if (country === "Turkey") {
+    website = "https://www.amazon.com.tr/s?k=hediye";
+  } else if (country === "Iraq") {
+    website = "https://www.amazon.ae/s?k=gift";
+  }
+
+  const categoryMap = {
+    gift: "Online Gifts",
+    luxury: "Online Premium Gifts",
+    tech: "Online Tech Store",
+    restaurant: "Online Experience Booking",
+    cafe: "Online Gift Card",
+    activity: "Online Experience",
+  } as const;
+
+  return {
+    name: "Online Option",
+    category: categoryMap[key as keyof typeof categoryMap],
+    country,
+    city: "Online",
+    website,
+    instagram: SOCIALS.instagram,
+    tiktok: SOCIALS.tiktok,
+    verified: true,
+    isOnline: true,
+  };
+}
 function merchantBy(country: Country, key: "gift" | "luxury" | "tech" | "restaurant" | "cafe" | "activity"): Merchant {
   const jordan = {
     gift: {
@@ -518,7 +585,7 @@ function merchantBy(country: Country, key: "gift" | "luxury" | "tech" | "restaur
       verified: true,
     },
   };
-
+ 
   const uae = {
     gift: {
       name: "Premium Gifts",
@@ -657,8 +724,17 @@ function merchantBy(country: Country, key: "gift" | "luxury" | "tech" | "restaur
     },
   };
 
-  const source =
-    country === "Jordan" ? jordan : country === "UAE" ? uae : country === "Saudi Arabia" ? saudi : jordan;
+const sources: Partial<Record<Country, typeof jordan>> = {
+  Jordan: jordan,
+  UAE: uae,
+  "Saudi Arabia": saudi,
+};
+
+const source = sources[country];
+
+if (!source) return null;
+
+
 
   return source[key];
 }
@@ -668,72 +744,78 @@ function getGiftResults(
   country: Country,
   lang: Language
 ) {
-  const base = {
-    symbolic: merchantBy(country, "gift"),
-    experience: merchantBy(country, "restaurant"),
-    tangible: merchantBy(country, "luxury"),
-    tech: merchantBy(country, "tech"),
-    activity: merchantBy(country, "activity"),
-  };
-
+ const base = {
+  symbolic: merchantBy(country, "gift") ?? getOnlineMerchant(country, "gift"),
+  experience: merchantBy(country, "restaurant") ?? getOnlineMerchant(country, "restaurant"),
+  tangible: merchantBy(country, "luxury") ?? getOnlineMerchant(country, "luxury"),
+  tech: merchantBy(country, "tech") ?? getOnlineMerchant(country, "tech"),
+  activity: merchantBy(country, "activity") ?? getOnlineMerchant(country, "activity"),
+}; 
   // بعده الشروط تبعك
   if (gift.recipient === "partner" && gift.emotion === "emotional") {
     return [
-   
-    {
- type: "symbolic" as const,
-  title: getResultTitle(lang, "symbolic", gift.recipient),
-reason: getSmartReason(lang, "symbolic", gift.recipient, gift.budget, gift.occasion),
-why: getSmartReason(lang, "symbolic", gift.recipient, gift.budget, gift.occasion),
+ {
+  type: "symbolic" as const,
+  title: "Memory Jar with Inside Jokes",
+  description: "A personalized jar filled with shared memories and funny moments.",
+  reason: "Emotional and personal, it reflects a real shared bond.",
+  why: "This gives the person something concrete, memorable, and deeply personal.",
   score: 96,
   merchant: base.symbolic,
-},
+}, 
 {
   type: "experience" as const,
-  title: getResultTitle(lang, "experience", gift.recipient),
- reason: getSmartReason(lang, "experience", gift.recipient, gift.budget, gift.occasion),
-why: getSmartReason(lang, "experience", gift.recipient, gift.budget, gift.occasion),
+  title: "Surprise Experience Day Together",
+  description: "A planned day filled with light fun and shared moments.",
+  reason: "It creates a memory, not just a purchase.",
+  why: "Experiences often stay longer in memory than objects.",
   score: 92,
   merchant: base.experience,
 },
 {
-   type: "tangible" as const,
-  title: getResultTitle(lang, "tangible", gift.recipient),
- reason: getSmartReason(lang, "tangible", gift.recipient, gift.budget, gift.occasion),
-why: getSmartReason(lang, "tangible", gift.recipient, gift.budget, gift.occasion),
+  type: "tangible" as const,
+  title: "Custom Fun Gift Box",
+  description: "A curated box with small personalized items and playful surprises.",
+  reason: "It feels complete, visible, and easy to appreciate instantly.",
+  why: "This turns the gift into something real, presentable, and easy to enjoy.",
   score: 88,
   merchant: base.tangible,
-}, 
+},
+
+
     ];
   }
 
   if (gift.recipient === "friend" && gift.emotion === "fun") {
-    return [
-      {
-        type: "symbolic",
-        title: "Turn Your Funniest Chat Into Something Real",
-        reason: "Take your best inside joke and make it unforgettable.",
-        why: "Fun friendships are built on shared humor, so the joke becomes the meaning.",
-        score: 94,
-        merchant: base.symbolic,
-      },
-      {
-        type: "experience",
-        title: "Plan a Moment You Will Both Remember",
-        reason: "A fun shared experience that matches your energy together.",
-        why: "A great friend result should feel alive, not formal.",
-        score: 91,
-        merchant: base.experience,
-      },
-      {
-        type: "tangible",
-        title: "Give Something They Will Actually Use",
-        reason: "A fun and useful gift that still feels exciting to receive.",
-        why: "Practical fun lands better than random novelty.",
-        score: 87,
-        merchant: base.tech,
-      },
-    ];
+ return [
+  {
+    type: "symbolic",
+    title: "Custom Memory Print from Your Funniest Chat",
+    description: "Turn your inside joke into a printed keepsake or framed memory.",
+    reason: "Personal and deeply connected to your friendship",
+    why: "Shared memories become meaningful when turned into something real",
+    score: 94,
+    merchant: base.symbolic,
+  },
+  {
+    type: "experience",
+    title: "Sunset Dinner at Sky Lounge",
+    description: "A relaxed dinner with atmosphere, view, and quality time together.",
+    reason: "A shared experience that feels special and alive",
+    why: "Experiences often stay longer in memory than objects",
+    score: 91,
+    merchant: base.experience,
+  },
+  {
+    type: "tangible",
+    title: "Curated Fun Gift Box",
+    description: "A ready gift box with playful items and a polished presentation.",
+    reason: "Clear, enjoyable, and easy to appreciate instantly",
+    why: "A visible gift works well when you want fun with real presence",
+    score: 87,
+    merchant: base.tangible,
+  },
+];
   }
 
   if (gift.recipient === "parent" && gift.emotion === "emotional") {
@@ -948,11 +1030,11 @@ function getExperienceResults(
   country: Country,
   lang: Language
 ): ResultCard[] {
-  const merchants = {
-    restaurant: merchantBy(country, "restaurant"),
-    cafe: merchantBy(country, "cafe"),
-    activity: merchantBy(country, "activity"),
-  };
+ const merchants = {
+  restaurant: merchantBy(country, "restaurant") ?? getOnlineMerchant(country, "restaurant"),
+  cafe: merchantBy(country, "cafe") ?? getOnlineMerchant(country, "cafe"),
+  activity: merchantBy(country, "activity") ?? getOnlineMerchant(country, "activity"),
+};
   if (exp.recipient === "friends" && exp.emotion === "fun") {
   return [
     {
@@ -1902,17 +1984,22 @@ Country: ${state.country}`;
                 <div className="mb-2 text-xs uppercase tracking-[0.22em] text-white/45">
                   {result.type}
                 </div>
+<div className="mb-3 flex items-start justify-between gap-4">
+  <h3 className="text-[28px] font-black leading-tight">
+    {result.title}
+  </h3>
 
-                <div className="mb-3 flex items-start justify-between gap-4">
-                  <h3 className="text-[28px] font-black leading-tight">
-                    {result.title}
-                  </h3>
-                  <div className="text-right">
-                    <div className="text-2xl font-black text-yellow-300">
-                      {result.score}%
-                    </div>
-                  </div>
-                </div>
+  <div className="text-right">
+    <div className="text-2xl font-black text-yellow-400">
+      {result.score}%
+    </div>
+  </div>
+</div>
+           {result.description && (
+  <p className="mt-3 text-base leading-7 text-white/82">
+    {result.description}
+  </p>
+)}
 
                 <p className="text-base leading-7 text-white/82">{result.reason}</p>
 
@@ -1928,70 +2015,112 @@ Country: ${state.country}`;
                 )}
 
                 {/* Merchant */}
-                <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
-                  <div className="mb-3 flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-lg font-bold">{result.merchant.name}</div>
-                        <div className="text-sm text-white/60">
-                          {result.merchant.category} • {result.merchant.city}, {result.merchant.country}
-                        </div>
-                      </div>
-                      {result.merchant.verified && (
-                        <div className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-yellow-300">
-                          {t.verified[lang]}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+ <div className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-5">
+  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <div className="text-[20px] font-black text-white">
+        {result.merchant.name}
+      </div>
+      <div className="text-white/70">
+        {result.merchant.category} • {result.merchant.city}, {result.merchant.country}
+      </div>
+    </div>
 
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <button
-                      onClick={() => openLink(result.merchant.website)}
-                      className="rounded-xl bg-yellow-500 px-4 py-3 text-sm font-semibold text-black"
-                    >
-                      {t.visitMerchant[lang]}
-                    </button>
+    {result.merchant.verified && (
+      <div className="inline-flex rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200">
+        {t.verified[lang]}
+      </div>
+    )}
+  </div>
 
-                    <button
-                      onClick={() => openPhone(result.merchant.phone)}
-                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold"
-                    >
-                      {t.call[lang]}
-                    </button>
+  {result.merchant.isOnline && (
+    <div className="mb-3 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+      🌐 {lang === "AR" ? "متوفر أونلاين" : "Available Online"}
+    </div>
+  )}
 
-                    <button
-                      onClick={() => openLink(result.merchant.instagram)}
-                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold"
-                    >
-                      {t.instagram[lang]}
-                    </button>
+  <div className="flex flex-wrap gap-2">
+    <a
+      href={
+        result.merchant.website
+          ? result.merchant.website.startsWith("http")
+            ? result.merchant.website
+            : `https://${result.merchant.website}`
+          : `https://www.google.com/maps/search/${encodeURIComponent(
+              result.merchant.name || ""
+            )}`
+      }
+      target="_blank"
+      rel="noopener noreferrer"
+      className="rounded-xl bg-yellow-500 px-4 py-3 text-sm font-semibold text-black"
+    >
+      {t.visitMerchant[lang]}
+    </a>
 
-                    <button
-                      onClick={() => openLink(result.merchant.tiktok)}
-                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold"
-                    >
-                      {t.tiktok[lang]}
-                    </button>
-                  </div>
+    {!result.merchant.isOnline && result.merchant.phone && (
+      <button
+        onClick={() =>
+          (window.location.href = `tel:${result.merchant.phone.replace(/\D/g, "")}`)
+        }
+        className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white"
+      >
+        {t.call[lang]}
+      </button>
+    )}
 
-                  <button
-               onClick={() => shareResult(result as ResultCard)}
-                    className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold"
-                  >
-                    {t.askFriend[lang]}
-                  </button>
-                </div>
-              </article>
-            ))}
+    {!result.merchant.isOnline && result.merchant.instagram && (
+      <button
+        onClick={() => {
+          const raw = result.merchant.instagram.trim();
+          const url = raw.startsWith("http")
+            ? raw
+            : `https://instagram.com/${raw.replace(/^@/, "")}`;
+          window.open(url, "_blank");
+        }}
+        className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white"
+      >
+        {t.instagram[lang]}
+      </button>
+    )}
+
+    {!result.merchant.isOnline &&
+      typeof result.merchant.tiktok === "string" &&
+      result.merchant.tiktok.trim() !== "" && (
+        <button
+          onClick={() => {
+            const raw = result.merchant.tiktok.trim();
+            const url = raw.startsWith("http")
+              ? raw
+              : `https://www.tiktok.com/@${raw.replace(/^@/, "")}`;
+            window.open(url, "_blank");
+          }}
+          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white"
+        >
+          {t.tiktok[lang]}
+        </button>
+      )}
+  </div>
+
+  <button
+    onClick={() => shareResult(result as ResultCard)}
+    className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white"
+  >
+    {t.askFriend[lang]}
+  </button>
+</div>            
+</article>
+))}
+
+
 
 {/* Online outside cards */}
 <div className="rounded-[24px] border border-yellow-500/20 bg-yellow-500/5 p-4">
   <div className="text-sm text-white/65">{t.onlineSub[lang]}</div>
   <button
-    onClick={() => openLink("https://example.com/online-option")}
+    onClick={() => openLink("https://www.amazon.com/s?k=gift ")}
     className="mt-3 w-full rounded-xl border border-yellow-500/40 px-4 py-3 text-sm font-semibold text-yellow-300"
   >
+  
     {t.onlineOption[lang]}
   </button>
 </div>
