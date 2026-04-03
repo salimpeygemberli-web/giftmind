@@ -730,14 +730,9 @@ const sources: Partial<Record<Country, typeof jordan>> = {
   "Saudi Arabia": saudi,
 };
 
-const source = sources[country];
+const selectedSource = sources[country];
 
-
-
-
-const source = sources[country];
-
-return source![key];
+return selectedSource![key];
 }
 
 function getGiftResults(
