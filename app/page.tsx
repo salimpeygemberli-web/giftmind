@@ -732,11 +732,12 @@ const sources: Partial<Record<Country, typeof jordan>> = {
 
 const source = sources[country];
 
-if (!source) return null;
 
 
 
-  return source[key];
+const source = sources[country];
+
+return source![key];
 }
 
 function getGiftResults(
