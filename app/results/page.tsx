@@ -192,7 +192,24 @@ function buildAnswersFromQuiz(quiz: QuizState): {
     usedCountryFallback: !hasCountryMerchants,
   };
 }
+function getOnlineLink(selectedCountry: string, query: string) {
+  const q = encodeURIComponent(query);
 
+  const map: Record<string, string> = {
+    AE: "https://www.amazon.ae/s?k=",
+    SA: "https://www.amazon.sa/s?k=",
+    US: "https://www.amazon.com/s?k=",
+    JO: "https://www.amazon.ae/s?k=",
+    UK: "https://www.amazon.co.uk/s?k=",
+    DE: "https://www.amazon.de/s?k=",
+    FR: "https://www.amazon.fr/s?k=",
+    TR: "https://www.amazon.com.tr/s?k=",
+    
+  };
+const base = map[selectedCountry] || map["US"];
+return base + encodeURIComponent(q);
+  
+}
 export default function ResultsPage() {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
 
@@ -212,8 +229,20 @@ export default function ResultsPage() {
     return { ...built, results };
   }, [quiz]);
 
-  const top = computed?.results?.[0];
-  const others = computed?.results?.slice(1) || [];
+ const top = computed?.results?.[0];
+const country = quiz?.country || "US";
+
+const searchQuery = [
+  top?.matchedWorlds?.[0],
+  quiz?.occasion,
+  quiz?.recipient
+]
+  .filter(Boolean)
+  .join(" ");
+
+const onlineLink = getOnlineLink(country, searchQuery || "gift");
+
+const others = computed?.results?.slice(1) || [];
 
   return (
     <main
@@ -300,6 +329,13 @@ export default function ResultsPage() {
                       <li key={reason}>• {reason}</li>
                     ))}
                   </ul>
+                  <a
+  href={onlineLink}
+  target="_blank"
+  className="mt-4 inline-block rounded-xl bg-white/10 px-4 py-2 hover:bg-white/20"
+>
+  Buy Online
+</a>
                 </div>
               </div>
             </section>

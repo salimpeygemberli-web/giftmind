@@ -1,0 +1,10 @@
+[33m4bd454f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m trigger rebuild
+[33me02024c[m trigger rebuild
+[33ma408a3a[m trigger rebuild
+[33me95036f[m trigger rebuild
+[33m46d840d[m stable demo version
+[33md9345c3[m disable browser auto translate fully
+[33mf0d0516[m fix translations + smart reasons + experience logic
+[33mb27d530[m disable merchant
+[33m2772421[m fix shareResult type
+[33m8709f32[m fix result return types
